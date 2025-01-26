@@ -23,26 +23,15 @@ export default class RequestHandler {
             return;
         }
 
-        if (!this.endpoint.inputType) {
-            if (!this.endpoint.outputType) {
-                res.status(500).json({
-                    status: "error",
-                    message: "Both input type and output type were not specified"
-                });
-                return;
-            }
-
-            try {
-                const output = this.endpoint.callback({}, handleError);
-                res.status(200).setHeaders(this.handleHeaders(output.headers)).json(output.body);
-                return;
-            } catch (error) {
-                res.status(400).json(error);
-                return;
-            }
+        if (!this.endpoint.inputType && !this.endpoint.outputType) {
+            res.status(500).json({
+                status: "error",
+                message: "Both input type and output type were not specified"
+            });
+            return;
         }
 
-        const bodyErrors = this.endpoint.inputType.body?.validate(req.body);
+        const bodyErrors = this.endpoint.inputType?.body?.validate(req.body);
         if (bodyErrors) {
             res.status(500).json({
                 status: "error",
@@ -53,7 +42,7 @@ export default class RequestHandler {
         }
 
         let queryData: any = {};
-        if (this.endpoint.inputType.query) {
+        if (this.endpoint.inputType?.query) {
             const errorsOrData = this.endpoint.inputType.query.parse(req.query);
             if (errorsOrData.isFailure()) {
                 res.status(500).json({
@@ -69,7 +58,7 @@ export default class RequestHandler {
         // NOTE: The 'params' data is guaranteed to be present without errors such as missing values, 
         // as path matching relies on the existence of the parameter.
         let paramsData: any = {};
-        if (this.endpoint.inputType.params) {
+        if (this.endpoint.inputType?.params) {
             const errorsOrData = this.endpoint.inputType.params.parse(req.params);
             if (errorsOrData.isSuccess()) {
                 paramsData = errorsOrData.value;
@@ -77,14 +66,14 @@ export default class RequestHandler {
         }
 
         let headersData: any = {};
-        if (this.endpoint.inputType.headers) {
+        if (this.endpoint.inputType?.headers) {
             const errorsOrData = this.endpoint.inputType.headers.parse(req.headers);
             if (errorsOrData.isSuccess()) {
                 headersData = errorsOrData.value;
             }
         }
 
-        if (this.endpoint.inputType.files) {
+        if (this.endpoint.inputType?.files) {
             const files = req.files;
 
             if (Array.isArray(files)) {
