@@ -11,6 +11,10 @@ export default class RequestHandler {
     }
 
     handle = (req: express.Request, res: express.Response): void => {
+        const handleError = (error: any) => {
+            throw error;
+        }
+
         if (!this.endpoint.callback) {
             res.status(500).json({
                 status: "error",
@@ -28,9 +32,14 @@ export default class RequestHandler {
                 return;
             }
 
-            const output = this.endpoint.callback({});
-            res.status(200).setHeaders(this.handleHeaders(output.headers)).json(output.body);
-            return;
+            try {
+                const output = this.endpoint.callback({}, handleError);
+                res.status(200).setHeaders(this.handleHeaders(output.headers)).json(output.body);
+                return;
+            } catch (error) {
+                res.status(400).json(error);
+                return;
+            }
         }
 
         const bodyErrors = this.endpoint.inputType.body?.validate(req.body);
@@ -97,39 +106,45 @@ export default class RequestHandler {
             }
         }
 
-        const output = this.endpoint.callback({
-            query: queryData,
-            body: req.body,
-            params: paramsData,
-            headers: headersData,
-        });
+        try {
+            const output = this.endpoint.callback({
+                query: queryData,
+                body: req.body,
+                params: paramsData,
+                headers: headersData,
+            }, handleError);
 
-        if (this.endpoint.outputType && this.endpoint.outputType.files) {
-            const formData = new FormData();
+            if (this.endpoint.outputType && this.endpoint.outputType.files) {
+                const formData = new FormData();
 
-            const filesNames = Object.getOwnPropertyNames(output.files);
-            for (let fileName of filesNames) {
-                const file: SchemaValidator.File = output.files[fileName];
-                formData.append(fileName, file.buffer, { filename: fileName, contentType: "application/octet-stream" });
+                const filesNames = Object.getOwnPropertyNames(output.files);
+                for (let fileName of filesNames) {
+                    const file: SchemaValidator.File = output.files[fileName];
+                    formData.append(fileName, file.buffer, { filename: fileName, contentType: "application/octet-stream" });
+                }
+
+                if (output.body) {
+                    formData.append("data", JSON.stringify(output.body), { contentType: "application/json" });
+                }
+
+                res.status(200)
+                    .setHeaders(this.handleHeaders(
+                        {
+                            ...output.headers,
+                            "Content-Type": `multipart/form-data; boundary=${formData.getBoundary()}`
+                        }
+                    ))
+                    .send(formData.getBuffer());
+
+                return;
             }
 
-            if (output.body) {
-                formData.append("data", JSON.stringify(output.body), { contentType: "application/json" });
-            }
-
-            res.status(200)
-                .setHeaders(this.handleHeaders(
-                    {
-                        ...output.headers,
-                        "Content-Type": `multipart/form-data; boundary=${formData.getBoundary()}`
-                    }
-                ))
-                .send(formData.getBuffer());
-
+            res.status(200).setHeaders(this.handleHeaders(output.headers)).json(output.body);
+            return;
+        } catch (error) {
+            res.status(400).json(error);
             return;
         }
-
-        res.status(200).setHeaders(this.handleHeaders(output.headers)).json(output.body);
     }
 
     handleHeaders(headers: any = {}) {

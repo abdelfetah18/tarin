@@ -8,12 +8,15 @@ type Simplify<T> = T extends object ? { [K in keyof T]: T[K] } : T;
 type IsExactType<T, U> = [T] extends [U] ? ([U] extends [T] ? true : false) : false;
 type MakeItBetter<T> = IsExactType<T, { [K in string]: SchemaValidator.TarinSupportedType }> extends true ? undefined : T;
 
-export default class Endpoint<InputType, OutputType> {
+type EndpointCallBack<InputType, OutputType, ErrorType> = (input: InputType, error: (error: ErrorType) => void) => OutputType;
+
+export default class Endpoint<InputType, OutputType, ErrorType> {
     method: HTTPMethod;
     path: string;
     inputType?: Input<SchemaValidator.AnyTarinObject, SchemaValidator.AnyTarinObject, SchemaValidator.AnyTarinObject, SchemaValidator.AnyTarinObject, SchemaValidator.GenericTarinObject<SchemaValidator.TarinFile>>;
     outputType?: Output<SchemaValidator.AnyTarinType, SchemaValidator.AnyTarinObject, SchemaValidator.GenericTarinObject<SchemaValidator.TarinFile>>;
-    callback?: (input: InputType) => OutputType;
+    errorType?: SchemaValidator.AnyTarinType;
+    callback?: EndpointCallBack<InputType, OutputType, ErrorType>;
 
     constructor(path: string, method: HTTPMethod) {
         this.path = path;
@@ -25,7 +28,7 @@ export default class Endpoint<InputType, OutputType> {
         QueryType extends SchemaValidator.AnyTarinObject,
         ParamsType extends SchemaValidator.AnyTarinObject,
         HeadersType extends SchemaValidator.AnyTarinObject,
-        FilesType  extends SchemaValidator.GenericTarinObject<SchemaValidator.TarinFile>
+        FilesType extends SchemaValidator.GenericTarinObject<SchemaValidator.TarinFile>
     >(inputType: Input<BodyType, QueryType, ParamsType, HeadersType, FilesType>) {
         this.inputType = inputType;
 
@@ -37,7 +40,7 @@ export default class Endpoint<InputType, OutputType> {
             files: MakeItBetter<Simplify<GetType<FilesType>>>;
         }>>;
 
-        return this as unknown as Endpoint<ComputedInputType, OutputType>;
+        return this as unknown as Endpoint<ComputedInputType, OutputType, ErrorType>;
     }
 
     output<
@@ -53,10 +56,17 @@ export default class Endpoint<InputType, OutputType> {
             files: MakeItBetter<Simplify<GetType<FilesType>>>;
         }>>;
 
-        return this as unknown as Endpoint<InputType, ComputedOutputType>;
+        return this as unknown as Endpoint<InputType, ComputedOutputType, ErrorType>;
     }
 
-    handleLogic(callback: (input: InputType) => OutputType): Endpoint<InputType, OutputType> {
+    error<Type extends SchemaValidator.AnyTarinType>(errorType: Type) {
+        this.errorType = errorType;
+        type ComputedErrorType = MakeItBetter<Simplify<GetType<Type>>>;
+
+        return this as unknown as Endpoint<InputType, OutputType, ComputedErrorType>;
+    }
+
+    handleLogic(callback: EndpointCallBack<InputType, OutputType, ErrorType>): Endpoint<InputType, OutputType, ErrorType> {
         this.callback = callback;
         return this;
     }
@@ -103,4 +113,4 @@ export const endpoint = {
 };
 
 // FIXME: Do not use any explicitly
-export type AnyEndpoint = Endpoint<any, any>;
+export type AnyEndpoint = Endpoint<any, any, any>;

@@ -295,4 +295,36 @@ describe("RequestHandler Class", () => {
 
         httpServer.close();
     });
+
+    test("should return defined error", async () => {
+        const app = new Tarin();
+        const server = app.createServer();
+        app.addEndpoint(endpoint.get("/:username")
+            .input({
+                params: SchemaValidator.object({
+                    username: SchemaValidator.string()
+                })
+            })
+            .output({
+                body: SchemaValidator.object({ message: SchemaValidator.string() })
+            })
+            .error(SchemaValidator.object({
+                message: SchemaValidator.string()
+            }))
+            .handleLogic((input, error) => {
+                if (input.params.username == "admin") {
+                    error({ message: "admin username is not allowed" });
+                }
+
+                return {
+                    body: { message: `Hello ${input.params.username}` }
+                };
+            })
+        );
+        const response = await supertest(server).get("/admin");
+
+        const expected = { message: "admin username is not allowed" };
+
+        expect(response.body).toEqual(expected);
+    });
 });
