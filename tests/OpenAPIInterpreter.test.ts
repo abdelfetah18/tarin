@@ -330,7 +330,7 @@ describe("OpenAPIInterpreter Class", () => {
         const openAPISpecification = openAPIInterpreter.generateDocs([
             endpoint.get("/").input({
                 query: SchemaValidator.object({ username: SchemaValidator.string() })
-            }).output({ body: SchemaValidator.string() })
+            }).output({ body: SchemaValidator.object({ username: SchemaValidator.string() }) })
         ]);
 
         const expected = {
@@ -354,8 +354,14 @@ describe("OpenAPIInterpreter Class", () => {
                                 content: {
                                     "application/json": {
                                         schema: {
-                                            type: "string",
+                                            type: "object",
                                             required: true,
+                                            properties: {
+                                                username: {
+                                                    type: "string",
+                                                    required: true,
+                                                }
+                                            }
                                         },
                                     },
                                 },
@@ -375,7 +381,7 @@ describe("OpenAPIInterpreter Class", () => {
             endpoint.get("/").input({
                 query: SchemaValidator.object({ username: SchemaValidator.string() })
             }).output({
-                body: SchemaValidator.string(),
+                body: SchemaValidator.object({ username: SchemaValidator.string() }),
                 headers: SchemaValidator.object({
                     username: SchemaValidator.string(),
                 }),
@@ -403,8 +409,14 @@ describe("OpenAPIInterpreter Class", () => {
                                 content: {
                                     "application/json": {
                                         schema: {
-                                            type: "string",
+                                            type: "object",
                                             required: true,
+                                            properties: {
+                                                username: {
+                                                    type: "string",
+                                                    required: true,
+                                                }
+                                            }
                                         },
                                     },
                                 },
@@ -429,7 +441,7 @@ describe("OpenAPIInterpreter Class", () => {
             endpoint.get("/").input({
                 query: SchemaValidator.object({ username: SchemaValidator.string() })
             }).output({
-                body: SchemaValidator.string(),
+                body: SchemaValidator.object({ username: SchemaValidator.string() }),
                 headers: SchemaValidator.object({
                     username: SchemaValidator.string().optional(),
                 }),
@@ -457,8 +469,14 @@ describe("OpenAPIInterpreter Class", () => {
                                 content: {
                                     "application/json": {
                                         schema: {
-                                            type: "string",
+                                            type: "object",
                                             required: true,
+                                            properties: {
+                                                username: {
+                                                    type: "string",
+                                                    required: true,
+                                                }
+                                            }
                                         },
                                     },
                                 },
@@ -482,7 +500,7 @@ describe("OpenAPIInterpreter Class", () => {
         const openAPISpecification = openAPIInterpreter.generateDocs([
             endpoint.get("/").input({
                 query: SchemaValidator.object({ username: SchemaValidator.string() })
-            }).output({ body: SchemaValidator.string() })
+            }).output({ body: SchemaValidator.object({ username: SchemaValidator.string() }) })
         ]);
 
         const expected = {
@@ -506,8 +524,14 @@ describe("OpenAPIInterpreter Class", () => {
                                 content: {
                                     "application/json": {
                                         schema: {
-                                            type: "string",
+                                            type: "object",
                                             required: true,
+                                            properties: {
+                                                username: {
+                                                    type: "string",
+                                                    required: true,
+                                                }
+                                            }
                                         },
                                     },
                                 },
@@ -526,7 +550,7 @@ describe("OpenAPIInterpreter Class", () => {
         const openAPISpecification = openAPIInterpreter.generateDocs([
             endpoint.post("/").input({
                 query: SchemaValidator.object({ username: SchemaValidator.string() })
-            }).output({ body: SchemaValidator.string() })
+            }).output({ body: SchemaValidator.object({ username: SchemaValidator.string() }) })
         ]);
 
         const expected = {
@@ -550,8 +574,14 @@ describe("OpenAPIInterpreter Class", () => {
                                 content: {
                                     "application/json": {
                                         schema: {
-                                            type: "string",
+                                            type: "object",
                                             required: true,
+                                            properties: {
+                                                username: {
+                                                    type: "string",
+                                                    required: true,
+                                                }
+                                            }
                                         },
                                     },
                                 },
@@ -570,7 +600,7 @@ describe("OpenAPIInterpreter Class", () => {
         const openAPISpecification = openAPIInterpreter.generateDocs([
             endpoint.put("/").input({
                 query: SchemaValidator.object({ username: SchemaValidator.string() })
-            }).output({ body: SchemaValidator.string() })
+            }).output({ body: SchemaValidator.object({ username: SchemaValidator.string() }) })
         ]);
 
         const expected = {
@@ -594,8 +624,14 @@ describe("OpenAPIInterpreter Class", () => {
                                 content: {
                                     "application/json": {
                                         schema: {
-                                            type: "string",
+                                            type: "object",
                                             required: true,
+                                            properties: {
+                                                username: {
+                                                    type: "string",
+                                                    required: true,
+                                                }
+                                            }
                                         },
                                     },
                                 },
@@ -614,7 +650,7 @@ describe("OpenAPIInterpreter Class", () => {
         const openAPISpecification = openAPIInterpreter.generateDocs([
             endpoint.delete("/").input({
                 query: SchemaValidator.object({ username: SchemaValidator.string() })
-            }).output({ body: SchemaValidator.string() })
+            }).output({ body: SchemaValidator.object({ username: SchemaValidator.string() }) })
         ]);
 
         const expected = {
@@ -638,8 +674,14 @@ describe("OpenAPIInterpreter Class", () => {
                                 content: {
                                     "application/json": {
                                         schema: {
-                                            type: "string",
+                                            type: "object",
                                             required: true,
+                                            properties: {
+                                                username: {
+                                                    type: "string",
+                                                    required: true,
+                                                }
+                                            }
                                         },
                                     },
                                 },
@@ -658,7 +700,7 @@ describe("OpenAPIInterpreter Class", () => {
         const openAPISpecification = openAPIInterpreter.generateDocs([
             endpoint.head("/").input({
                 query: SchemaValidator.object({ username: SchemaValidator.string() })
-            }).output({ body: SchemaValidator.string() })
+            }).output({ body: SchemaValidator.object({ username: SchemaValidator.string() }) })
         ]);
 
         const expected = {
@@ -682,8 +724,14 @@ describe("OpenAPIInterpreter Class", () => {
                                 content: {
                                     "application/json": {
                                         schema: {
-                                            type: "string",
+                                            type: "object",
                                             required: true,
+                                            properties: {
+                                                username: {
+                                                    type: "string",
+                                                    required: true,
+                                                }
+                                            }
                                         },
                                     },
                                 },
@@ -702,7 +750,7 @@ describe("OpenAPIInterpreter Class", () => {
         const openAPISpecification = openAPIInterpreter.generateDocs([
             endpoint.patch("/").input({
                 query: SchemaValidator.object({ username: SchemaValidator.string() })
-            }).output({ body: SchemaValidator.string() })
+            }).output({ body: SchemaValidator.object({ username: SchemaValidator.string() }) })
         ]);
 
         const expected = {
@@ -726,8 +774,14 @@ describe("OpenAPIInterpreter Class", () => {
                                 content: {
                                     "application/json": {
                                         schema: {
-                                            type: "string",
+                                            type: "object",
                                             required: true,
+                                            properties: {
+                                                username: {
+                                                    type: "string",
+                                                    required: true,
+                                                }
+                                            }
                                         },
                                     },
                                 },
@@ -746,7 +800,7 @@ describe("OpenAPIInterpreter Class", () => {
         const openAPISpecification = openAPIInterpreter.generateDocs([
             endpoint.options("/").input({
                 query: SchemaValidator.object({ username: SchemaValidator.string() })
-            }).output({ body: SchemaValidator.string() })
+            }).output({ body: SchemaValidator.object({ username: SchemaValidator.string() }) })
         ]);
 
         const expected = {
@@ -770,8 +824,14 @@ describe("OpenAPIInterpreter Class", () => {
                                 content: {
                                     "application/json": {
                                         schema: {
-                                            type: "string",
+                                            type: "object",
                                             required: true,
+                                            properties: {
+                                                username: {
+                                                    type: "string",
+                                                    required: true,
+                                                }
+                                            }
                                         },
                                     },
                                 },
@@ -790,7 +850,7 @@ describe("OpenAPIInterpreter Class", () => {
         const openAPISpecification = openAPIInterpreter.generateDocs([
             endpoint.trace("/").input({
                 query: SchemaValidator.object({ username: SchemaValidator.string() })
-            }).output({ body: SchemaValidator.string() })
+            }).output({ body: SchemaValidator.object({ username: SchemaValidator.string() }) })
         ]);
 
         const expected = {
@@ -814,8 +874,14 @@ describe("OpenAPIInterpreter Class", () => {
                                 content: {
                                     "application/json": {
                                         schema: {
-                                            type: "string",
+                                            type: "object",
                                             required: true,
+                                            properties: {
+                                                username: {
+                                                    type: "string",
+                                                    required: true,
+                                                }
+                                            }
                                         },
                                     },
                                 },
@@ -835,7 +901,7 @@ describe("OpenAPIInterpreter Class", () => {
             endpoint.post("/").input({
                 files: SchemaValidator.object({ file: SchemaValidator.file({}) }),
                 body: SchemaValidator.object({ username: SchemaValidator.string() }),
-            }).output({ body: SchemaValidator.string() })
+            }).output({ body: SchemaValidator.object({ username: SchemaValidator.string() }) })
         ]);
 
         const expected = {
@@ -880,8 +946,14 @@ describe("OpenAPIInterpreter Class", () => {
                                 content: {
                                     "application/json": {
                                         schema: {
-                                            type: "string",
+                                            type: "object",
                                             required: true,
+                                            properties: {
+                                                username: {
+                                                    type: "string",
+                                                    required: true,
+                                                }
+                                            }
                                         },
                                     },
                                 },

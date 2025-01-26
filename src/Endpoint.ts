@@ -14,8 +14,8 @@ export default class Endpoint<InputType, OutputType, ErrorType> {
     method: HTTPMethod;
     path: string;
     inputType?: Input<SchemaValidator.AnyTarinObject, SchemaValidator.AnyTarinObject, SchemaValidator.AnyTarinObject, SchemaValidator.AnyTarinObject, SchemaValidator.GenericTarinObject<SchemaValidator.TarinFile>>;
-    outputType?: Output<SchemaValidator.AnyTarinType, SchemaValidator.AnyTarinObject, SchemaValidator.GenericTarinObject<SchemaValidator.TarinFile>>;
-    errorType?: SchemaValidator.AnyTarinType;
+    outputType?: Output<SchemaValidator.AnyTarinObject, SchemaValidator.AnyTarinObject, SchemaValidator.GenericTarinObject<SchemaValidator.TarinFile>>;
+    errorType?: SchemaValidator.AnyTarinObject;
     callback?: EndpointCallBack<InputType, OutputType, ErrorType>;
 
     constructor(path: string, method: HTTPMethod) {
@@ -44,7 +44,7 @@ export default class Endpoint<InputType, OutputType, ErrorType> {
     }
 
     output<
-        BodyType extends SchemaValidator.AnyTarinType,
+        BodyType extends SchemaValidator.AnyTarinObject,
         HeadersType extends SchemaValidator.AnyTarinObject,
         FilesType extends SchemaValidator.GenericTarinObject<SchemaValidator.TarinFile>
     >(outputType: Output<BodyType, HeadersType, FilesType>) {
@@ -59,7 +59,7 @@ export default class Endpoint<InputType, OutputType, ErrorType> {
         return this as unknown as Endpoint<InputType, ComputedOutputType, ErrorType>;
     }
 
-    error<Type extends SchemaValidator.AnyTarinType>(errorType: Type) {
+    error<Type extends SchemaValidator.AnyTarinObject>(errorType: Type) {
         this.errorType = errorType;
         type ComputedErrorType = MakeItBetter<Simplify<GetType<Type>>>;
 
@@ -97,7 +97,7 @@ export interface Output<BodyType, HeadersType, FilesType> {
 };
 
 export type AnyInputType = Input<SchemaValidator.AnyTarinObject, SchemaValidator.AnyTarinObject, SchemaValidator.AnyTarinObject, SchemaValidator.AnyTarinObject, SchemaValidator.AnyTarinObject>;
-export type AnyOutputType = Output<SchemaValidator.AnyTarinType, SchemaValidator.AnyTarinObject, SchemaValidator.GenericTarinObject<SchemaValidator.TarinFile>>;
+export type AnyOutputType = Output<SchemaValidator.AnyTarinObject, SchemaValidator.AnyTarinObject, SchemaValidator.GenericTarinObject<SchemaValidator.TarinFile>>;
 
 
 
