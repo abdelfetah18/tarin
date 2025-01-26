@@ -53,7 +53,7 @@ export default class OpenAPIInterpreter {
         }
 
         if (endpoint.outputType) {
-            this.addResponses(endpoint.outputType, operation);
+            this.addResponses(endpoint.outputType, operation, endpoint.errorType);
         }
 
         return operation;
@@ -132,7 +132,7 @@ export default class OpenAPIInterpreter {
         }
     }
 
-    private addResponses(outputType: AnyOutputType, operation: OperationObject, files?: SchemaValidator.AnyTarinType): void {
+    private addResponses(outputType: AnyOutputType, operation: OperationObject, errorType?: SchemaValidator.AnyTarinObject): void {
         let hasFiles = outputType.files != undefined;
         let hasBody = outputType.body != undefined;
 
@@ -165,10 +165,19 @@ export default class OpenAPIInterpreter {
                     }
                     response.addHeader(headerName, header);
                 }
-
             }
 
             const responses = new ResponsesObject(response);
+
+            if (errorType) {
+                const schema = errorType.toOpenApiSchema();
+                const mediaType = new MediaTypeObject(schema);
+                const content = new ContentObject();
+                content.addMediaType("application/json", mediaType);
+
+                const response = new ResponseObject(content);
+                responses.addResponse("400", response);
+            }
 
             operation.setResponses(responses);
         }

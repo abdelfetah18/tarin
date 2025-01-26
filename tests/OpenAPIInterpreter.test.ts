@@ -1041,4 +1041,72 @@ describe("OpenAPIInterpreter Class", () => {
 
         expect(openAPISpecification).toEqual(expected);
     });
+
+    test("should generates an open-api specification for error response", async () => {
+        const openAPISpecification = openAPIInterpreter.generateDocs([
+            endpoint.get("/").input({
+                query: SchemaValidator.object({ username: SchemaValidator.string() }),
+            }).output({
+                body: SchemaValidator.object({ username: SchemaValidator.string() })
+            }).error(SchemaValidator.object({ message: SchemaValidator.string() }))
+        ]);
+
+        const expected = {
+            info: {
+                title: "API Documentation",
+                version: "1.0.0",
+            },
+            openapi: "3.1.0",
+            paths: {
+                "/": {
+                    get: {
+                        parameters: [
+                            {
+                                in: "query",
+                                name: "username",
+                                required: true,
+                            }
+                        ],
+                        responses: {
+                            default: {
+                                content: {
+                                    "application/json": {
+                                        schema: {
+                                            type: "object",
+                                            required: true,
+                                            properties: {
+                                                username: {
+                                                    type: "string",
+                                                    required: true,
+                                                }
+                                            }
+                                        },
+                                    },
+                                },
+                            },
+                            "400": {
+                                content: {
+                                    "application/json": {
+                                        schema: {
+                                            type: "object",
+                                            required: true,
+                                            properties: {
+                                                message: {
+                                                    type: "string",
+                                                    required: true,
+                                                }
+                                            }
+                                        },
+                                    },
+                                },
+                            }
+                        },
+                    },
+                },
+            },
+
+        };
+
+        expect(openAPISpecification).toEqual(expected);
+    });
 });

@@ -325,15 +325,26 @@ export class SchemaObject extends OpenAPIObject {
 
 export class ResponsesObject extends OpenAPIObject {
     private default: ResponseObject;
+    private responses: Map<string, ResponseObject> = new Map();
 
     constructor(_default: ResponseObject) {
         super();
         this.default = _default;
     }
 
+    addResponse(statusCode: string, response: ResponseObject): void {
+        this.responses.set(statusCode, response);
+    }
+
     toJSON(): any {
+        const jsonObject: Record<string, any> = {};
+        this.responses.forEach((response, responseName) => {
+            jsonObject[responseName] = response.toJSON();
+        });
+
         return {
-            default: this.default.toJSON()
+            default: this.default.toJSON(),
+            ...jsonObject
         }
     }
 }
