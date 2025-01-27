@@ -9,7 +9,15 @@
     "build": "tsc",
     "test": "jest"
   },
-  "keywords": [],
+  "keywords": [
+    "api",
+    "backend",
+    "restful",
+    "swagger",
+    "openapi",
+    "typescript",
+    "self-api-documentation"
+  ],
   "author": "",
   "license": "MIT",
   "devDependencies": {
