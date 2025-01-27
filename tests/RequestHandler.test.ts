@@ -2,6 +2,7 @@ import supertest from "supertest";
 import { endpoint } from "../src/Endpoint";
 import Tarin from "../src/Tarin";
 import * as SchemaValidator from "../src/SchemaValidator";
+import Result from "../src/Result";
 
 describe("RequestHandler Class", () => {
     test("should return an error response when no callback is available in the endpoint", async () => {
@@ -19,7 +20,7 @@ describe("RequestHandler Class", () => {
     test("should return an error response when both input type and output type are not specified", async () => {
         const app = new Tarin();
         const server = app.createServer();
-        app.addEndpoint(endpoint.get("/").handleLogic(() => { }));
+        app.addEndpoint(endpoint.get("/").handleLogic(() => Result.success("")));
         const response = await supertest(server).get("/");
 
         const expected = { status: "error", message: "Both input type and output type were not specified" };
@@ -37,9 +38,9 @@ describe("RequestHandler Class", () => {
                     body: SchemaValidator.object({ message: SchemaValidator.string() })
                 })
                 .handleLogic((_) => {
-                    return {
+                    return Result.success({
                         body: { message: "HelloWorld" }
-                    };
+                    });
                 })
         );
 
@@ -64,9 +65,9 @@ describe("RequestHandler Class", () => {
                 body: SchemaValidator.object({ message: SchemaValidator.string() })
             })
             .handleLogic((input) => {
-                return {
+                return Result.success({
                     body: { message: `Hello ${input.body.username}` }
-                };
+                });
             })
         );
         const response = await supertest(server).post("/").send({ username: 1 });
@@ -94,9 +95,9 @@ describe("RequestHandler Class", () => {
                 body: SchemaValidator.object({ message: SchemaValidator.string() })
             })
             .handleLogic((input) => {
-                return {
+                return Result.success({
                     body: { message: `Hello ${input.query.username}` },
-                };
+                });
             })
         );
         const response = await supertest(server).get("/");
@@ -124,9 +125,9 @@ describe("RequestHandler Class", () => {
                 body: SchemaValidator.object({ message: SchemaValidator.string() })
             })
             .handleLogic((input) => {
-                return {
+                return Result.success({
                     body: { message: `Hello ${input.params.username}` }
-                };
+                });
             })
         );
         const response = await supertest(server).get("/Tarin");
@@ -149,9 +150,9 @@ describe("RequestHandler Class", () => {
                 body: SchemaValidator.object({ message: SchemaValidator.string() })
             })
             .handleLogic((input) => {
-                return {
+                return Result.success({
                     body: { message: `Hello ${input.headers.username}` }
-                };
+                });
             })
         );
         const response = (await supertest(server).get("/Tarin").set("username", "Tarin"));
@@ -180,9 +181,9 @@ describe("RequestHandler Class", () => {
                 body: SchemaValidator.object({ message: SchemaValidator.string() })
             })
             .handleLogic((input) => {
-                return {
+                return Result.success({
                     body: { message: `Hello ${input.query.username}, id is ${input.params.id} and title is ${input.body.title}` }
-                };
+                });
             }));
         const response = await supertest(server).post("/users/1?username=Tarin").send({ title: "Tarin" });
 
@@ -205,10 +206,10 @@ describe("RequestHandler Class", () => {
                 headers: SchemaValidator.object({ id: SchemaValidator.string() })
             })
             .handleLogic((input) => {
-                return {
+                return Result.success({
                     body: { message: `Hello ${input.params.username}` },
                     headers: { id: "TarinID" }
-                };
+                });
             })
         );
 
@@ -237,9 +238,9 @@ describe("RequestHandler Class", () => {
                 body: SchemaValidator.object({ message: SchemaValidator.string() })
             })
             .handleLogic((input) => {
-                return {
+                return Result.success({
                     body: { message: `Hello ${input.query.username}` },
-                };
+                });
             })
         );
 
@@ -275,10 +276,10 @@ describe("RequestHandler Class", () => {
                 }),
             })
             .handleLogic((_) => {
-                return {
+                return Result.success({
                     body: { message: `Hello World` },
                     files: { file: { buffer, fieldname: "file", mimetype: "plain/text", size: buffer.length } }
-                };
+                });
             })
         );
 
@@ -311,14 +312,14 @@ describe("RequestHandler Class", () => {
             .error(SchemaValidator.object({
                 message: SchemaValidator.string()
             }))
-            .handleLogic((input, error) => {
+            .handleLogic((input) => {
                 if (input.params.username == "admin") {
-                    error({ message: "admin username is not allowed" });
+                    return Result.failure({ message: "admin username is not allowed" });
                 }
 
-                return {
+                return Result.success({
                     body: { message: `Hello ${input.params.username}` }
-                };
+                });
             })
         );
         const response = await supertest(server).get("/admin");

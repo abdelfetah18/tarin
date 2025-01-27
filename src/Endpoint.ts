@@ -1,3 +1,4 @@
+import Result from "./Result";
 import * as SchemaValidator from "./SchemaValidator";
 
 export type HTTPMethod = "GET" | "POST" | "PUT" | "DELETE" | "HEAD" | "PATCH" | "OPTIONS" | "TRACE";
@@ -8,7 +9,6 @@ type Simplify<T> = T extends object ? { [K in keyof T]: T[K] } : T;
 type IsExactType<T, U> = [T] extends [U] ? ([U] extends [T] ? true : false) : false;
 type MakeItBetter<T> = IsExactType<T, { [K in string]: SchemaValidator.TarinSupportedType }> extends true ? undefined : T;
 
-type EndpointCallBack<InputType, OutputType, ErrorType> = (input: InputType, error: (error: ErrorType) => void) => OutputType;
 
 export default class Endpoint<InputType, OutputType, ErrorType> {
     method: HTTPMethod;
@@ -16,7 +16,7 @@ export default class Endpoint<InputType, OutputType, ErrorType> {
     inputType?: Input<SchemaValidator.AnyTarinObject, SchemaValidator.AnyTarinObject, SchemaValidator.AnyTarinObject, SchemaValidator.AnyTarinObject, SchemaValidator.GenericTarinObject<SchemaValidator.TarinFile>>;
     outputType?: Output<SchemaValidator.AnyTarinObject, SchemaValidator.AnyTarinObject, SchemaValidator.GenericTarinObject<SchemaValidator.TarinFile>>;
     errorType?: SchemaValidator.AnyTarinObject;
-    callback?: EndpointCallBack<InputType, OutputType, ErrorType>;
+    callback?: (input: InputType) => Result<ErrorType, OutputType>;
 
     constructor(path: string, method: HTTPMethod) {
         this.path = path;
@@ -66,7 +66,7 @@ export default class Endpoint<InputType, OutputType, ErrorType> {
         return this as unknown as Endpoint<InputType, OutputType, ComputedErrorType>;
     }
 
-    handleLogic(callback: EndpointCallBack<InputType, OutputType, ErrorType>): Endpoint<InputType, OutputType, ErrorType> {
+    handleLogic(callback: (input: InputType) => Result<ErrorType, OutputType>): Endpoint<InputType, OutputType, ErrorType> {
         this.callback = callback;
         return this;
     }

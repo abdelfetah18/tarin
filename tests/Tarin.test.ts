@@ -2,6 +2,7 @@ import supertest from "supertest";
 import Tarin from "../src/Tarin";
 import { endpoint } from "../src/Endpoint";
 import * as SchemaValidator from "../src/SchemaValidator";
+import Result from "../src/Result";
 
 
 describe("Tarin Class", () => {
@@ -15,7 +16,7 @@ describe("Tarin Class", () => {
                 .output({
                     body: SchemaValidator.object({ message: SchemaValidator.string() })
                 })
-                .handleLogic(_ => ({ body: { message: "Hello World" } }))
+                .handleLogic(_ => Result.success({ body: { message: "Hello World" } }))
         );
 
         const response = await supertest(server).get("/");
@@ -33,7 +34,7 @@ describe("Tarin Class", () => {
                 .output({
                     body: SchemaValidator.object({ message: SchemaValidator.string() })
                 })
-                .handleLogic((_) => ({ body: { message: "Hi" } }))
+                .handleLogic((_) => Result.success({ body: { message: "Hi" } }))
         );
 
         const response = await supertest(server).get("/");
@@ -51,7 +52,7 @@ describe("Tarin Class", () => {
                 .output({
                     body: SchemaValidator.object({ message: SchemaValidator.string() })
                 })
-                .handleLogic((_) => ({ body: { message: "Hi" } })),
+                .handleLogic((_) => Result.success({ body: { message: "Hi" } })),
             endpoint.post("/user")
                 .input({
                     body: SchemaValidator.object({
@@ -61,7 +62,7 @@ describe("Tarin Class", () => {
                 .output({
                     body: SchemaValidator.object({ message: SchemaValidator.string() })
                 })
-                .handleLogic((_) => ({ body: { message: "user" } }))
+                .handleLogic((_) => Result.success({ body: { message: "user" } }))
         ]);
 
         const response = await supertest(server).get("/");
@@ -80,12 +81,12 @@ describe("Tarin Class", () => {
                     .output({
                         body: SchemaValidator.object({ message: SchemaValidator.string() })
                     })
-                    .handleLogic((_) => ({ body: { message: "Hi" } })),
+                    .handleLogic((_) => Result.success({ body: { message: "Hi" } })),
                 endpoint.get("/user")
                     .output({
                         body: SchemaValidator.object({ message: SchemaValidator.string() })
                     })
-                    .handleLogic((_) => ({ body: { message: "user" } }))
+                    .handleLogic((_) => Result.success({ body: { message: "user" } }))
             ])
         };
 
@@ -101,7 +102,7 @@ describe("Tarin Class", () => {
                     .output({
                         body: SchemaValidator.object({ message: SchemaValidator.string() })
                     })
-                    .handleLogic((_) => ({ body: { message: "Hi" } }))
+                    .handleLogic((_) => Result.success({ body: { message: "Hi" } }))
             )
         };
 
@@ -128,7 +129,7 @@ describe("Tarin Class", () => {
                 .output({
                     body: SchemaValidator.object({ message: SchemaValidator.string() })
                 })
-                .handleLogic((_) => ({ body: { message: "Hi" } }))
+                .handleLogic((_) => Result.success({ body: { message: "Hi" } }))
         );
 
         const response = await supertest(server).get("/");
@@ -148,7 +149,7 @@ describe("Tarin Class", () => {
                 .output({
                     body: SchemaValidator.object({ message: SchemaValidator.string() })
                 })
-                .handleLogic((_) => ({ body: { message: "Hello World" } }))
+                .handleLogic((_) => Result.success({ body: { message: "Hello World" } }))
         );
 
         const response = await supertest(server).get("/");
@@ -166,7 +167,7 @@ describe("Tarin Class", () => {
                 .output({
                     body: SchemaValidator.object({ message: SchemaValidator.string() })
                 })
-                .handleLogic((_) => ({ body: { message: "Hello World" } }))
+                .handleLogic((_) => Result.success({ body: { message: "Hello World" } }))
         );
 
         const response = await supertest(server).post("/");
@@ -184,7 +185,7 @@ describe("Tarin Class", () => {
                 .output({
                     body: SchemaValidator.object({ message: SchemaValidator.string() })
                 })
-                .handleLogic((_) => ({ body: { message: "Hello World" } }))
+                .handleLogic((_) => Result.success({ body: { message: "Hello World" } }))
         );
 
         const response = await supertest(server).delete("/");
@@ -202,7 +203,7 @@ describe("Tarin Class", () => {
                 .output({
                     body: SchemaValidator.object({ message: SchemaValidator.string() })
                 })
-                .handleLogic((_) => ({ body: { message: "Hello World" } }))
+                .handleLogic((_) => Result.success({ body: { message: "Hello World" } }))
         );
 
         const response = await supertest(server).patch("/");
@@ -220,7 +221,7 @@ describe("Tarin Class", () => {
                 .output({
                     headers: SchemaValidator.object({ message: SchemaValidator.string() })
                 })
-                .handleLogic((_) => ({ headers: { message: "Hello World" } }))
+                .handleLogic((_) => Result.success({ headers: { message: "Hello World" } }))
         );
 
         const response = await supertest(server).head("/");
@@ -238,7 +239,7 @@ describe("Tarin Class", () => {
                 .output({
                     body: SchemaValidator.object({ message: SchemaValidator.string() })
                 })
-                .handleLogic((_) => ({ body: { message: "Hello World" } }))
+                .handleLogic((_) => Result.success({ body: { message: "Hello World" } }))
         );
 
         const response = await supertest(server).options("/");
@@ -256,7 +257,7 @@ describe("Tarin Class", () => {
                 .output({
                     body: SchemaValidator.object({ message: SchemaValidator.string() })
                 })
-                .handleLogic((_) => ({ body: { message: "Hello World" } }))
+                .handleLogic((_) => Result.success({ body: { message: "Hello World" } }))
         );
 
         const response = await supertest(server).put("/");
@@ -274,7 +275,7 @@ describe("Tarin Class", () => {
                 .output({
                     body: SchemaValidator.object({ message: SchemaValidator.string() })
                 })
-                .handleLogic((_) => ({ body: { message: "Hello World" } }))
+                .handleLogic((_) => Result.success({ body: { message: "Hello World" } }))
         );
 
         const response = await supertest(server).trace("/");

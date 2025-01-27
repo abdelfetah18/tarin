@@ -11,10 +11,6 @@ export default class RequestHandler {
     }
 
     handle = (req: express.Request, res: express.Response): void => {
-        const handleError = (error: any) => {
-            throw error;
-        }
-
         if (!this.endpoint.callback) {
             res.status(500).json({
                 status: "error",
@@ -95,45 +91,47 @@ export default class RequestHandler {
             }
         }
 
-        try {
-            const output = this.endpoint.callback({
-                query: queryData,
-                body: req.body,
-                params: paramsData,
-                headers: headersData,
-            }, handleError);
 
-            if (this.endpoint.outputType && this.endpoint.outputType.files) {
-                const formData = new FormData();
+        const result = this.endpoint.callback({
+            query: queryData,
+            body: req.body,
+            params: paramsData,
+            headers: headersData,
+        });
 
-                const filesNames = Object.getOwnPropertyNames(output.files);
-                for (let fileName of filesNames) {
-                    const file: SchemaValidator.File = output.files[fileName];
-                    formData.append(fileName, file.buffer, { filename: fileName, contentType: "application/octet-stream" });
-                }
-
-                if (output.body) {
-                    formData.append("data", JSON.stringify(output.body), { contentType: "application/json" });
-                }
-
-                res.status(200)
-                    .setHeaders(this.handleHeaders(
-                        {
-                            ...output.headers,
-                            "Content-Type": `multipart/form-data; boundary=${formData.getBoundary()}`
-                        }
-                    ))
-                    .send(formData.getBuffer());
-
-                return;
-            }
-
-            res.status(200).setHeaders(this.handleHeaders(output.headers)).json(output.body);
-            return;
-        } catch (error) {
-            res.status(400).json(error);
+        if (result.isFailure()) {
+            res.status(400).json(result.error);
             return;
         }
+
+        const output = result.value!;
+
+        if (this.endpoint.outputType && this.endpoint.outputType.files) {
+            const formData = new FormData();
+
+            const filesNames = Object.getOwnPropertyNames(output.files);
+            for (let fileName of filesNames) {
+                const file: SchemaValidator.File = output.files[fileName];
+                formData.append(fileName, file.buffer, { filename: fileName, contentType: "application/octet-stream" });
+            }
+
+            if (output.body) {
+                formData.append("data", JSON.stringify(output.body), { contentType: "application/json" });
+            }
+
+            res.status(200)
+                .setHeaders(this.handleHeaders(
+                    {
+                        ...output.headers,
+                        "Content-Type": `multipart/form-data; boundary=${formData.getBoundary()}`
+                    }
+                ))
+                .send(formData.getBuffer());
+
+            return;
+        }
+
+        res.status(200).setHeaders(this.handleHeaders(output.headers)).json(output.body);
     }
 
     handleHeaders(headers: any = {}) {
