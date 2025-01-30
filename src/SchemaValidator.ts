@@ -56,6 +56,16 @@ interface TarinFileDef { maxSize?: number; };
 export class TarinString extends TarinType<string, TarinStringDef, TarinError> {
     type: TarinDataType = "string";
 
+    private _max?: number;
+    private _min?: number;
+    private _length?: number;
+    private _url: boolean = false;
+    private _uuid: boolean = false;
+    private _regex?: RegExp;
+    private _includes?: string;
+    private _startsWith?: string;
+    private _endsWith?: string;
+
     static create(): TarinString {
         return new TarinString({});
     }
@@ -74,11 +84,57 @@ export class TarinString extends TarinType<string, TarinStringDef, TarinError> {
     }
 
     validate(data: any): TarinError | null {
-        if (typeof data == "string") {
-            return null;
+        if (typeof data != "string") {
+            return { message: `Expected a string, but found ${typeof data}` };
         }
 
-        return { message: `Expected a string, but found ${typeof data}` };
+        if (this._max && data.length > this._max) {
+            return { message: `Exceeded maximum allowed string length of ${this._max}` };
+        }
+
+        if (this._min && data.length < this._min) {
+            return { message: `String length must be at least ${this._min} characters` };
+        }
+
+        if (this._length && data.length !== this._length) {
+            return { message: `String must be exactly ${this._length} characters long` };
+        }
+
+        if (this._url) {
+            try {
+                new URL(data);
+            } catch (error) {
+                return { message: `Invalid URL format` };
+            }
+        }
+
+        if (this._uuid) {
+            const result = data.match(/^\w{8}-\w{4}-\w{4}-\w{4}-\w{12}$/);
+            if (!result) {
+                return { message: `Invalid UUID format` };
+            }
+        }
+
+        if (this._regex) {
+            const result = data.match(this._regex);
+            if (!result) {
+                return { message: `String does not match the required pattern` };
+            }
+        }
+
+        if (this._includes && !data.includes(this._includes)) {
+            return { message: `String must contain "${this._includes}"` };
+        }
+
+        if (this._startsWith && !data.startsWith(this._startsWith)) {
+            return { message: `String must start with "${this._startsWith}"` };
+        }
+
+        if (this._endsWith && !data.endsWith(this._endsWith)) {
+            return { message: `String must end with "${this._endsWith}"` };
+        }
+
+        return null;
     }
 
     parse(data: any): Result<TarinError, string> {
@@ -88,6 +144,16 @@ export class TarinString extends TarinType<string, TarinStringDef, TarinError> {
 
         return Result.success<TarinError, string>(String(data));
     }
+
+    max(value: number) { this._max = value; return this; }
+    min(value: number) { this._min = value; return this; }
+    length(value: number) { this._length = value; return this; }
+    url() { this._url = true; return this; }
+    uuid() { this._uuid = true; return this; }
+    regex(value: RegExp) { this._regex = value; return this; }
+    includes(value: string) { this._includes = value; return this; }
+    startsWith(value: string) { this._startsWith = value; return this; }
+    endsWith(value: string) { this._endsWith = value; return this; }
 }
 
 export class TarinNumber extends TarinType<number, TarinNumberDef, TarinError> {

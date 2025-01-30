@@ -56,6 +56,88 @@ describe("SchemaValidator Class", () => {
         expect(result).toEqual(expected);
     });
 
+    test("should returns an error when the string exceeds the maximum allowed length", async () => {
+        const stringSchema = SchemaValidator.string().max(6);
+        const result = stringSchema.validate("HelloWorld");
+
+        const expected = { message: "Exceeded maximum allowed string length of 6" };
+
+        expect(result).toEqual(expected);
+    });
+
+    test("should returns an error when the string is shorter than the minimum required length", async () => {
+        const stringSchema = SchemaValidator.string().min(5);
+        const result = stringSchema.validate("Hi");
+
+        const expected = { message: "String length must be at least 5 characters" };
+
+        expect(result).toEqual(expected);
+    });
+
+    test("should returns an error when the string does not match the expected length", async () => {
+        const stringSchema = SchemaValidator.string().length(8);
+        const result = stringSchema.validate("Hello");
+
+        const expected = { message: "String must be exactly 8 characters long" };
+
+        expect(result).toEqual(expected);
+    });
+
+    test("should returns an error when the string is not a valid URL", async () => {
+        const stringSchema = SchemaValidator.string().url();
+        const result = stringSchema.validate("invalid-url");
+
+        const expected = { message: "Invalid URL format" };
+
+        expect(result).toEqual(expected);
+    });
+
+    test("should returns an error when the string is not a valid UUID", async () => {
+        const stringSchema = SchemaValidator.string().uuid();
+        const result = stringSchema.validate("invalid-uuid");
+
+        const expected = { message: "Invalid UUID format" };
+
+        expect(result).toEqual(expected);
+    });
+
+    test("should returns an error when the string does not match the specified regex pattern", async () => {
+        const regexPattern = /^[A-Z]+$/;
+        const stringSchema = SchemaValidator.string().regex(regexPattern);
+        const result = stringSchema.validate("hello");
+
+        const expected = { message: "String does not match the required pattern" };
+
+        expect(result).toEqual(expected);
+    });
+
+    test("should returns an error when the string does not include the required substring", async () => {
+        const stringSchema = SchemaValidator.string().includes("test");
+        const result = stringSchema.validate("hello world");
+
+        const expected = { message: 'String must contain "test"' };
+
+        expect(result).toEqual(expected);
+    });
+
+    test("should returns an error when the string does not start with the required prefix", async () => {
+        const stringSchema = SchemaValidator.string().startsWith("Hello");
+        const result = stringSchema.validate("World Hello");
+
+        const expected = { message: 'String must start with "Hello"' };
+
+        expect(result).toEqual(expected);
+    });
+
+    test("should returns an error when the string does not end with the required suffix", async () => {
+        const stringSchema = SchemaValidator.string().endsWith("World");
+        const result = stringSchema.validate("Hello there");
+
+        const expected = { message: 'String must end with "World"' };
+
+        expect(result).toEqual(expected);
+    });
+
     test("should validates a number value successfully", async () => {
         const numberSchema = SchemaValidator.number();
         const errors = numberSchema.validate(0x1337);
