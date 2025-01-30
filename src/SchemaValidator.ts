@@ -159,6 +159,17 @@ export class TarinString extends TarinType<string, TarinStringDef, TarinError> {
 export class TarinNumber extends TarinType<number, TarinNumberDef, TarinError> {
     type: TarinDataType = "number";
 
+    _gt?: number;
+    _gte?: number;
+    _lt?: number;
+    _lte?: number;
+    _integer: boolean = false;
+    _positive: boolean = false;
+    _nonnegative: boolean = false;
+    _negative: boolean = false;
+    _nonpositive: boolean = false;
+    _multipleOf?: number;
+
     static create(): TarinNumber {
         return new TarinNumber({});
     }
@@ -177,11 +188,52 @@ export class TarinNumber extends TarinType<number, TarinNumberDef, TarinError> {
     }
 
     validate(data: any): TarinError | null {
-        if (typeof data == "number") {
-            return null;
+        if (typeof data != "number") {
+            return { message: `Expected a number, but found ${typeof data}` };
         }
 
-        return { message: `Expected a number, but found ${typeof data}` };
+        if (this._gt && data <= this._gt) {
+            return { message: `Expected a number greater than ${this._gt}.` };
+        }
+
+        if (this._gte && data < this._gte) {
+            return { message: `Expected a number greater than or equal to ${this._gte}.` };
+        }
+
+        if (this._lt && data >= this._lt) {
+            return { message: `Expected a number less than ${this._lt}.` };
+        }
+
+        if (this._lte && data > this._lte) {
+            return { message: `Expected a number less than or equal to ${this._lte}.` };
+        }
+
+        if (this._integer && Math.floor(data) !== data) {
+            return { message: `Expected an integer.` };
+        }
+
+        if (this._positive && data <= 0) {
+            return { message: `Expected a positive number.` };
+        }
+
+        if (this._nonnegative && data < 0) {
+            return { message: `Expected a non-negative number (greater than or equal to 0).` };
+        }
+
+        if (this._negative && data >= 0) {
+            return { message: `Expected a negative number.` };
+        }
+
+        if (this._nonpositive && data > 0) {
+            return { message: `Expected a non-positive number (less than or equal to 0).` };
+        }
+
+        if (this._multipleOf && (data % this._multipleOf) !== 0) {
+            return { message: `Expected a number that is a multiple of ${this._multipleOf}.` };
+        }
+
+        return null;
+
     }
 
     parse(data: any): Result<TarinError, number> {
@@ -191,6 +243,17 @@ export class TarinNumber extends TarinType<number, TarinNumberDef, TarinError> {
 
         return Result.success<TarinError, number>(Number(data));
     }
+
+    gt(value: number) { this._gt = value; return this; }
+    gte(value: number) { this._gte = value; return this; }
+    lt(value: number) { this._lt = value; return this; }
+    lte(value: number) { this._lte = value; return this; }
+    integer() { this._integer = true; return this; }
+    positive() { this._positive = true; return this; }
+    nonnegative() { this._nonnegative = true; return this; }
+    negative() { this._negative = true; return this; }
+    nonpositive() { this._nonpositive = true; return this; }
+    multipleOf(value: number) { this._multipleOf = value; return this; }
 }
 
 export class TarinBoolean extends TarinType<boolean, TarinBooleanDef, TarinError> {

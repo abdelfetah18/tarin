@@ -190,6 +190,96 @@ describe("SchemaValidator Class", () => {
         expect(result).toEqual(expected);
     });
 
+    test("should returns an error when the number is less than or equal to the specified greater-than value", async () => {
+        const numberSchema = SchemaValidator.number().gt(10);
+        const result = numberSchema.validate(10);
+
+        const expected = { message: "Expected a number greater than 10." };
+
+        expect(result).toEqual(expected);
+    });
+
+    test("should returns an error when the number is less than the specified greater-than-or-equal value", async () => {
+        const numberSchema = SchemaValidator.number().gte(10);
+        const result = numberSchema.validate(9);
+
+        const expected = { message: "Expected a number greater than or equal to 10." };
+
+        expect(result).toEqual(expected);
+    });
+
+    test("should returns an error when the number is greater than or equal to the specified less-than value", async () => {
+        const numberSchema = SchemaValidator.number().lt(10);
+        const result = numberSchema.validate(10);
+
+        const expected = { message: "Expected a number less than 10." };
+
+        expect(result).toEqual(expected);
+    });
+
+    test("should returns an error when the number is greater than the specified less-than-or-equal value", async () => {
+        const numberSchema = SchemaValidator.number().lte(10);
+        const result = numberSchema.validate(11);
+
+        const expected = { message: "Expected a number less than or equal to 10." };
+
+        expect(result).toEqual(expected);
+    });
+
+    test("should returns an error when the number is not an integer", async () => {
+        const numberSchema = SchemaValidator.number().integer();
+        const result = numberSchema.validate(10.5);
+
+        const expected = { message: "Expected an integer." };
+
+        expect(result).toEqual(expected);
+    });
+
+    test("should returns an error when the number is not positive", async () => {
+        const numberSchema = SchemaValidator.number().positive();
+        const result = numberSchema.validate(-5);
+
+        const expected = { message: "Expected a positive number." };
+
+        expect(result).toEqual(expected);
+    });
+
+    test("should returns an error when the number is negative for a non-negative check", async () => {
+        const numberSchema = SchemaValidator.number().nonnegative();
+        const result = numberSchema.validate(-1);
+
+        const expected = { message: "Expected a non-negative number (greater than or equal to 0)." };
+
+        expect(result).toEqual(expected);
+    });
+
+    test("should returns an error when the number is not negative", async () => {
+        const numberSchema = SchemaValidator.number().negative();
+        const result = numberSchema.validate(5);
+
+        const expected = { message: "Expected a negative number." };
+
+        expect(result).toEqual(expected);
+    });
+
+    test("should returns an error when the number is not non-positive", async () => {
+        const numberSchema = SchemaValidator.number().nonpositive();
+        const result = numberSchema.validate(1);
+
+        const expected = { message: "Expected a non-positive number (less than or equal to 0)." };
+
+        expect(result).toEqual(expected);
+    });
+
+    test("should returns an error when the number is not a multiple of the specified value", async () => {
+        const numberSchema = SchemaValidator.number().multipleOf(5);
+        const result = numberSchema.validate(7);
+
+        const expected = { message: "Expected a number that is a multiple of 5." };
+
+        expect(result).toEqual(expected);
+    });
+
     test("should validates a boolean value successfully", async () => {
         const booleanSchema = SchemaValidator.boolean();
         const errors = booleanSchema.validate(true);
