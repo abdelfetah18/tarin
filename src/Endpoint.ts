@@ -16,7 +16,7 @@ export default class Endpoint<InputType, OutputType, ErrorType> {
     inputType?: Input<SchemaValidator.AnyTarinObject, SchemaValidator.AnyTarinObject, SchemaValidator.AnyTarinObject, SchemaValidator.AnyTarinObject, SchemaValidator.GenericTarinObject<SchemaValidator.TarinFile>>;
     outputType?: Output<SchemaValidator.AnyTarinObject, SchemaValidator.AnyTarinObject, SchemaValidator.GenericTarinObject<SchemaValidator.TarinFile>>;
     errorType?: SchemaValidator.AnyTarinObject;
-    callback?: (input: InputType) => Result<ErrorType, OutputType>;
+    callback?: (input: InputType) => Result<ErrorType, OutputType> | Promise<Result<ErrorType, OutputType>>;
 
     constructor(path: string, method: HTTPMethod) {
         this.path = path;
@@ -66,7 +66,7 @@ export default class Endpoint<InputType, OutputType, ErrorType> {
         return this as unknown as Endpoint<InputType, OutputType, ComputedErrorType>;
     }
 
-    handleLogic(callback: (input: InputType) => Result<ErrorType, OutputType>): Endpoint<InputType, OutputType, ErrorType> {
+    handleLogic(callback: (input: InputType) => Result<ErrorType, OutputType> | Promise<Result<ErrorType, OutputType>>): Endpoint<InputType, OutputType, ErrorType> {
         this.callback = callback;
         return this;
     }

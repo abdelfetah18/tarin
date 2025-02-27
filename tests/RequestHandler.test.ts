@@ -328,4 +328,38 @@ describe("RequestHandler Class", () => {
 
         expect(response.body).toEqual(expected);
     });
+
+    test("should support asynchronous callbacks", async () => {
+        const app = new Tarin();
+        const server = app.createServer();
+
+        const messagePromise = new Promise(resolve => {
+            resolve("Hello");
+        });
+
+        app.addEndpoint(endpoint.get("/:username")
+            .input({
+                params: SchemaValidator.object({
+                    username: SchemaValidator.string()
+                })
+            })
+            .output({
+                body: SchemaValidator.object({ message: SchemaValidator.string() })
+            })
+            .error(SchemaValidator.object({
+                message: SchemaValidator.string()
+            }))
+            .handleLogic(async (input) => {
+                const message = await messagePromise;
+                return Result.success({
+                    body: { message: `${message} ${input.params.username}` }
+                });
+            })
+        );
+        const response = await supertest(server).get("/tarin");
+
+        const expected = { message: "Hello tarin" };
+
+        expect(response.body).toEqual(expected);
+    });
 });

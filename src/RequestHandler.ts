@@ -10,7 +10,7 @@ export default class RequestHandler {
         this.endpoint = endpoint;
     }
 
-    handle = (req: express.Request, res: express.Response): void => {
+    handle = async (req: express.Request, res: express.Response): Promise<void> => {
         if (!this.endpoint.callback) {
             res.status(500).json({
                 status: "error",
@@ -91,8 +91,7 @@ export default class RequestHandler {
             }
         }
 
-
-        const result = this.endpoint.callback({
+        const result = await this.endpoint.callback({
             query: queryData,
             body: req.body,
             params: paramsData,
