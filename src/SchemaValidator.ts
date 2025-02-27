@@ -14,7 +14,7 @@ export type TarinDataType = "string" | "number" | "boolean" | "array" | "object"
 export type TarinSchemaObjectShape = { [key in string]: TarinSchemaShape; };
 export type TarinSchemaShape = "string" | "number" | "boolean" | TarinSchemaObjectShape | "file";
 
-export type TarinSupportedType = string | number | boolean | TypeOfObject<TarinTypeMap> | TypeOfObject<TarinTypeMap>[] | File | undefined;
+export type TarinSupportedType = string | number | boolean | TypeOfObject<TarinTypeMap> | TypeOfObject<TarinTypeMap>[] | File | undefined | TarinSupportedType[];
 
 export type TarinError = { message: string; }
 export type TarinObjectError = { [key in string]: TarinTypeError }
@@ -294,7 +294,7 @@ export class TarinBoolean extends TarinType<boolean, TarinBooleanDef, TarinError
 }
 
 export type AnyTarinArray = TarinArray<AnyTarinObject>;
-export class TarinArray<T extends AnyTarinType> extends TarinType<TypeOf<T>, TarinArrayDef<T>, TarinTypeError[]> {
+export class TarinArray<T extends AnyTarinType> extends TarinType<TypeOf<T>[], TarinArrayDef<T>, TarinTypeError[]> {
     type: TarinDataType = "array";
 
     static create<T extends AnyTarinType>(shape: T): TarinArray<T> {
@@ -335,13 +335,13 @@ export class TarinArray<T extends AnyTarinType> extends TarinType<TypeOf<T>, Tar
         return errors;
     }
 
-    parse(data: any): Result<TarinTypeError[], TypeOf<T>> {
+    parse(data: any): Result<TarinTypeError[], TypeOf<T>[]> {
         if (!data) {
-            return Result.failure<TarinTypeError[], TypeOf<T>>([{ message: "data is missing" }])
+            return Result.failure<TarinTypeError[], TypeOf<T>[]>([{ message: "data is missing" }])
         }
 
         if (!Array.isArray(data)) {
-            return Result.failure<TarinTypeError[], TypeOf<T>>([{ message: `Expected array found ${typeof data}` }]);
+            return Result.failure<TarinTypeError[], TypeOf<T>[]>([{ message: `Expected array found ${typeof data}` }]);
         }
 
         const errors: TarinTypeError[] = [];
@@ -353,10 +353,10 @@ export class TarinArray<T extends AnyTarinType> extends TarinType<TypeOf<T>, Tar
         }
 
         if (errors.length > 0) {
-            return Result.failure<TarinTypeError[], TypeOf<T>>(errors);
+            return Result.failure<TarinTypeError[], TypeOf<T>[]>(errors);
         }
 
-        return Result.success<TarinTypeError[], TypeOf<T>>(data as TypeOf<T>);
+        return Result.success<TarinTypeError[], TypeOf<T>[]>(data as TypeOf<T>[]);
     }
 }
 
