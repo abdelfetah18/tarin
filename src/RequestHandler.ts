@@ -27,7 +27,18 @@ export default class RequestHandler {
             return;
         }
 
-        const bodyErrors = this.endpoint.inputType?.body?.validate(req.body);
+        let bodyData = {};
+        if (this.endpoint.inputType?.files == undefined) {
+            bodyData = req.body;
+        } else {
+            try {
+                bodyData = JSON.parse(req.body.data);
+            } catch (error) {
+                bodyData = {}
+            }
+        }
+
+        const bodyErrors = this.endpoint.inputType?.body?.validate(bodyData);
         if (bodyErrors) {
             res.status(500).json({
                 status: "error",
@@ -93,7 +104,7 @@ export default class RequestHandler {
 
         const result = await this.endpoint.callback({
             query: queryData,
-            body: req.body,
+            body: bodyData,
             params: paramsData,
             headers: headersData,
         });
