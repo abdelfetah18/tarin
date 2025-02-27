@@ -203,7 +203,7 @@ describe("OpenAPIInterpreter Class", () => {
                                                 required: true,
                                             },
                                         },
-                                        required: true,
+                                        required: [],
                                         type: "object",
                                     },
                                 },
@@ -244,7 +244,7 @@ describe("OpenAPIInterpreter Class", () => {
                                                 required: false,
                                             },
                                         },
-                                        required: true,
+                                        required: [],
                                         type: "object",
                                     },
                                 },
@@ -355,7 +355,7 @@ describe("OpenAPIInterpreter Class", () => {
                                     "application/json": {
                                         schema: {
                                             type: "object",
-                                            required: true,
+                                            required: [],
                                             properties: {
                                                 username: {
                                                     type: "string",
@@ -410,7 +410,7 @@ describe("OpenAPIInterpreter Class", () => {
                                     "application/json": {
                                         schema: {
                                             type: "object",
-                                            required: true,
+                                            required: [],
                                             properties: {
                                                 username: {
                                                     type: "string",
@@ -470,7 +470,7 @@ describe("OpenAPIInterpreter Class", () => {
                                     "application/json": {
                                         schema: {
                                             type: "object",
-                                            required: true,
+                                            required: [],
                                             properties: {
                                                 username: {
                                                     type: "string",
@@ -525,7 +525,7 @@ describe("OpenAPIInterpreter Class", () => {
                                     "application/json": {
                                         schema: {
                                             type: "object",
-                                            required: true,
+                                            required: [],
                                             properties: {
                                                 username: {
                                                     type: "string",
@@ -575,7 +575,7 @@ describe("OpenAPIInterpreter Class", () => {
                                     "application/json": {
                                         schema: {
                                             type: "object",
-                                            required: true,
+                                            required: [],
                                             properties: {
                                                 username: {
                                                     type: "string",
@@ -625,7 +625,7 @@ describe("OpenAPIInterpreter Class", () => {
                                     "application/json": {
                                         schema: {
                                             type: "object",
-                                            required: true,
+                                            required: [],
                                             properties: {
                                                 username: {
                                                     type: "string",
@@ -675,7 +675,7 @@ describe("OpenAPIInterpreter Class", () => {
                                     "application/json": {
                                         schema: {
                                             type: "object",
-                                            required: true,
+                                            required: [],
                                             properties: {
                                                 username: {
                                                     type: "string",
@@ -725,7 +725,7 @@ describe("OpenAPIInterpreter Class", () => {
                                     "application/json": {
                                         schema: {
                                             type: "object",
-                                            required: true,
+                                            required: [],
                                             properties: {
                                                 username: {
                                                     type: "string",
@@ -775,7 +775,7 @@ describe("OpenAPIInterpreter Class", () => {
                                     "application/json": {
                                         schema: {
                                             type: "object",
-                                            required: true,
+                                            required: [],
                                             properties: {
                                                 username: {
                                                     type: "string",
@@ -825,7 +825,7 @@ describe("OpenAPIInterpreter Class", () => {
                                     "application/json": {
                                         schema: {
                                             type: "object",
-                                            required: true,
+                                            required: [],
                                             properties: {
                                                 username: {
                                                     type: "string",
@@ -875,7 +875,7 @@ describe("OpenAPIInterpreter Class", () => {
                                     "application/json": {
                                         schema: {
                                             type: "object",
-                                            required: true,
+                                            required: [],
                                             properties: {
                                                 username: {
                                                     type: "string",
@@ -926,7 +926,7 @@ describe("OpenAPIInterpreter Class", () => {
                                             },
                                             data: {
                                                 type: "object",
-                                                required: true,
+                                                required: [],
                                                 properties: {
                                                     username: {
                                                         type: "string",
@@ -936,7 +936,7 @@ describe("OpenAPIInterpreter Class", () => {
                                             }
                                         },
                                         type: "object",
-                                        required: true,
+                                        required: [],
                                     },
                                 },
                             },
@@ -947,7 +947,7 @@ describe("OpenAPIInterpreter Class", () => {
                                     "application/json": {
                                         schema: {
                                             type: "object",
-                                            required: true,
+                                            required: [],
                                             properties: {
                                                 username: {
                                                     type: "string",
@@ -993,7 +993,7 @@ describe("OpenAPIInterpreter Class", () => {
                                 "application/json": {
                                     schema: {
                                         type: "object",
-                                        required: true,
+                                        required: [],
                                         properties: {
                                             username: {
                                                 type: "string",
@@ -1017,7 +1017,7 @@ describe("OpenAPIInterpreter Class", () => {
                                                 },
                                                 data: {
                                                     type: "object",
-                                                    required: true,
+                                                    required: [],
                                                     properties: {
                                                         username: {
                                                             type: "string",
@@ -1027,7 +1027,7 @@ describe("OpenAPIInterpreter Class", () => {
                                                 }
                                             },
                                             type: "object",
-                                            required: true,
+                                            required: [],
                                         },
                                     },
                                 },
@@ -1073,7 +1073,7 @@ describe("OpenAPIInterpreter Class", () => {
                                     "application/json": {
                                         schema: {
                                             type: "object",
-                                            required: true,
+                                            required: [],
                                             properties: {
                                                 username: {
                                                     type: "string",
@@ -1089,7 +1089,7 @@ describe("OpenAPIInterpreter Class", () => {
                                     "application/json": {
                                         schema: {
                                             type: "object",
-                                            required: true,
+                                            required: [],
                                             properties: {
                                                 message: {
                                                     type: "string",

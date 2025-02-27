@@ -318,7 +318,7 @@ export class SchemaObject extends OpenAPIObject {
             properties: Object.getOwnPropertyNames(jsonObject).length > 0 ? jsonObject : undefined,
             items: this.items?.toJSON(),
             format: this.format,
-            required: this.required,
+            required: this.type == "object" ? [] : this.required,
         }
     }
 }
