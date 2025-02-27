@@ -499,7 +499,7 @@ describe("SchemaValidator Class", () => {
             buffer,
             mimetype: "plain/text",
             size: buffer.length,
-            fieldname: "file",
+            fieldname: "file"
         };
 
         const errors = fileSchema.validate(file);

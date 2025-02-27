@@ -6,7 +6,7 @@ import OpenAPIInterpreter from "./OpenAPI/OpenAPIInterpreter";
 import swaggerUIExpress from "swagger-ui-express";
 import multer from "multer";
 
-const uploadManager = multer({ dest: './uploads/', storage: multer.memoryStorage() })
+const uploadManager = multer({ dest: './uploads/' })
 
 export default class Tarin {
     endpoints: AnyEndpoint[] = [];

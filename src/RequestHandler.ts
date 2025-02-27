@@ -2,6 +2,7 @@ import FormData from "form-data";
 import { SchemaValidator } from ".";
 import { AnyEndpoint } from "./Endpoint";
 import express from "express";
+import { readFileSync } from "fs";
 
 export default class RequestHandler {
     private endpoint: AnyEndpoint;
@@ -86,6 +87,7 @@ export default class RequestHandler {
 
             if (Array.isArray(files)) {
                 filesData = files.reduce((acc: { [K in string]: SchemaValidator.File; }, file: SchemaValidator.File) => {
+                    file.buffer = readFileSync(file.path!);
                     acc[file.fieldname] = file;
                     return acc;
                 }, {});
