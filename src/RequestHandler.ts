@@ -80,17 +80,17 @@ export default class RequestHandler {
             }
         }
 
+        let filesData = {};
         if (this.endpoint.inputType?.files) {
             const files = req.files;
 
             if (Array.isArray(files)) {
-                const filesErrors = this.endpoint.inputType.files.validate(
-                    files.reduce((acc: { [K in string]: SchemaValidator.File; }, file: SchemaValidator.File) => {
-                        acc[file.fieldname] = file;
-                        return acc;
-                    }, {})
-                );
+                filesData = files.reduce((acc: { [K in string]: SchemaValidator.File; }, file: SchemaValidator.File) => {
+                    acc[file.fieldname] = file;
+                    return acc;
+                }, {});
 
+                const filesErrors = this.endpoint.inputType.files.validate(filesData);
                 if (filesErrors) {
                     res.status(500).json({
                         status: "error",
@@ -107,6 +107,7 @@ export default class RequestHandler {
             body: bodyData,
             params: paramsData,
             headers: headersData,
+            files: filesData,
         });
 
         if (result.isFailure()) {
