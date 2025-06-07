@@ -6,7 +6,10 @@ export type TypeOf<T extends AnyTarinType> = T["_type"]
 export type TypeOfObject<T extends TarinTypeMap> = { [K in keyof T]: TypeOf<T[K]>; }
 
 export type AnyTarinType = TarinType<TarinSupportedType, TarinTypeDef, TarinTypeError>
+export type LiteralTarinType = TarinType<TarinSupportedLiteralType, TarinTypeDef, TarinTypeError>
+
 export type TarinTypeMap = { [k: string]: AnyTarinType }
+export type TarinLiteralTypeMap = { [k: string]: LiteralTarinType }
 export type GenericTarinTypeMap<T extends AnyTarinType> = { [k: string]: T }
 
 export type TarinDataType = "string" | "number" | "boolean" | "array" | "object" | "file";
@@ -15,6 +18,7 @@ export type TarinSchemaObjectShape = { [key in string]: TarinSchemaShape; };
 export type TarinSchemaShape = "string" | "number" | "boolean" | TarinSchemaObjectShape | "file";
 
 export type TarinSupportedType = string | number | boolean | TypeOfObject<TarinTypeMap> | TypeOfObject<TarinTypeMap>[] | File | undefined | TarinSupportedType[];
+export type TarinSupportedLiteralType = string | number | boolean | undefined;
 
 export type TarinError = { message: string; }
 export type TarinObjectError = { [key in string]: TarinTypeError }
@@ -361,6 +365,8 @@ export class TarinArray<T extends AnyTarinType> extends TarinType<TypeOf<T>[], T
 }
 
 export type AnyTarinObject = TarinObject<TarinTypeMap>
+export type LiteralTarinObject = TarinObject<TarinLiteralTypeMap>
+
 export type GenericTarinObject<T extends AnyTarinType> = TarinObject<GenericTarinTypeMap<T> | {}>
 
 export class TarinObject<T extends TarinTypeMap> extends TarinType<TypeOfObject<T>, TarinObjectDef<T>, TarinObjectError> {
