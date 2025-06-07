@@ -1,0 +1,34 @@
+name: Get Next Version
+
+on:
+  workflow_call:
+    outputs:
+      version:
+        description: "Calculate next version"
+        value: ${{ jobs.get-next-version.outputs.version }}
+
+jobs:
+  get-next-version:
+    runs-on: ubuntu-latest
+    outputs:
+      version: ${{ steps.calc.outputs.version }}
+
+    steps:
+      - name: Checkout source
+        uses: actions/checkout@v4
+
+      - name: Calculate next version
+        id: calc
+        run: |
+          CURRENT_VERSION=$(node -p "require('./package.json').version")
+          IFS='.' read -r MAJOR MINOR PATCH <<< "$CURRENT_VERSION"
+
+          if [ "$MINOR" -eq 9 ]; then
+            NEW_MAJOR=$((MAJOR + 1))
+            VERSION="${NEW_MAJOR}.0.0"
+          else
+            NEW_MINOR=$((MINOR + 1))
+            FINAL_VERSION="${MAJOR}.${NEW_MINOR}.0"
+          fi
+
+          echo "version=$VERSION" >> "$GITHUB_OUTPUT"
