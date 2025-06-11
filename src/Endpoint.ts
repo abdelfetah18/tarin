@@ -17,10 +17,12 @@ export default class Endpoint<InputType, OutputType, ErrorType> {
     outputType?: Output<SchemaValidator.AnyTarinObject, SchemaValidator.AnyTarinObject, SchemaValidator.GenericTarinObject<SchemaValidator.TarinFile>>;
     errorType?: SchemaValidator.AnyTarinObject;
     callback?: (input: InputType) => Result<ErrorType, OutputType> | Promise<Result<ErrorType, OutputType>>;
+    middlewares: AnyCallback[];
 
     constructor(path: string, method: HTTPMethod) {
         this.path = path;
         this.method = method;
+        this.middlewares = [];
     }
 
     input<
@@ -71,6 +73,17 @@ export default class Endpoint<InputType, OutputType, ErrorType> {
         return this;
     }
 
+    middleware<MiddlewareOutputType extends SchemaValidator.AnyTarinType>(
+        outputType: MiddlewareOutputType,
+        callback: Callback<InputType, MakeItBetter<Simplify<GetType<MiddlewareOutputType>>>, ErrorType>,
+    ) {
+        this.middlewares.push(callback);
+
+        type ComputedInputType = InputType & { middleware: MakeItBetter<Simplify<GetType<MiddlewareOutputType>>>; }
+
+        return this as unknown as Endpoint<ComputedInputType, OutputType, ErrorType>;
+    }
+
 
     static createGET(path: string): AnyEndpoint { return new Endpoint(path, "GET"); }
     static createPOST(path: string): AnyEndpoint { return new Endpoint(path, "POST"); }
@@ -81,6 +94,9 @@ export default class Endpoint<InputType, OutputType, ErrorType> {
     static createPUT(path: string): AnyEndpoint { return new Endpoint(path, "PUT"); }
     static createTRACE(path: string): AnyEndpoint { return new Endpoint(path, "TRACE"); }
 }
+
+export type Callback<Input, Output, Error> = (input: Input) => Result<Error, Output> | Promise<Result<Error, Output>>;
+export type AnyCallback = Callback<any, any, any>;
 
 export interface Input<BodyType, QueryType, ParamsType, HeadersType, FilesType> {
     body?: BodyType;
@@ -99,7 +115,26 @@ export interface Output<BodyType, HeadersType, FilesType> {
 export type AnyInputType = Input<SchemaValidator.AnyTarinObject, SchemaValidator.LiteralTarinObject, SchemaValidator.LiteralTarinObject, SchemaValidator.AnyTarinObject, SchemaValidator.AnyTarinObject>;
 export type AnyOutputType = Output<SchemaValidator.AnyTarinObject, SchemaValidator.AnyTarinObject, SchemaValidator.GenericTarinObject<SchemaValidator.TarinFile>>;
 
+export type Schema = Input<
+    SchemaValidator.AnyTarinObject,
+    SchemaValidator.LiteralTarinObject,
+    SchemaValidator.LiteralTarinObject,
+    SchemaValidator.AnyTarinObject,
+    SchemaValidator.GenericTarinObject<SchemaValidator.TarinFile>
+>
 
+export type BodySchema = SchemaValidator.AnyTarinType;
+export type QuerySchema = SchemaValidator.LiteralTarinObject;
+export type ParamsSchema = SchemaValidator.LiteralTarinObject;
+export type HeadersSchema = SchemaValidator.LiteralTarinObject;
+export type FilesSchema = SchemaValidator.GenericTarinObject<SchemaValidator.TarinFile>;
+export interface InputSchemas {
+    body: BodySchema,
+    query: QuerySchema,
+    params: ParamsSchema,
+    headers: HeadersSchema,
+    files: FilesSchema
+};
 
 export const endpoint = {
     get: Endpoint.createGET,

@@ -362,4 +362,49 @@ describe("RequestHandler Class", () => {
 
         expect(response.body).toEqual(expected);
     });
+
+    test("should support middleware", async () => {
+        const app = new Tarin();
+        const server = app.createServer();
+
+        app.addEndpoint(endpoint.get("/:username")
+            .input({
+                params: SchemaValidator.object({
+                    username: SchemaValidator.string()
+                })
+            })
+            .output({
+                body: SchemaValidator.object({
+                    message: SchemaValidator.string()
+                })
+            })
+            .middleware(
+                SchemaValidator.object({
+                    messageA: SchemaValidator.string()
+                }),
+                (input) => {
+                    return Result.success({ messageA: `Hello ${input.params.username}` });
+                })
+            .middleware(
+                SchemaValidator.object({
+                    messageB: SchemaValidator.string()
+                }),
+                (input) => {
+                    return Result.success({ messageB: `${input.middleware.messageA}, How are you?` });
+                })
+            .handleLogic((input) => {
+                return Result.success({
+                    body: {
+                        message: input.middleware.messageB
+                    }
+                });
+            })
+        );
+
+        const response = await supertest(server).get("/tarin");
+
+        const expected = { message: "Hello tarin, How are you?" };
+
+        expect(response.body).toEqual(expected);
+    });
 });

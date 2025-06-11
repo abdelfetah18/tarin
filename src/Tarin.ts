@@ -1,5 +1,5 @@
 import express from "express";
-import Endpoint, { AnyEndpoint } from "./Endpoint";
+import { AnyCallback, AnyEndpoint } from "./Endpoint";
 import RequestHandler from "./RequestHandler";
 import { Server } from "http";
 import OpenAPIInterpreter from "./OpenAPI/OpenAPIInterpreter";
@@ -31,6 +31,11 @@ export default class Tarin {
         }
 
         const requestHandler = new RequestHandler(endpoint);
+
+        endpoint.middlewares.forEach(middlewareCallback => {
+            this.expressApp!.use(endpoint.path, requestHandler.getMiddlewareHandler(middlewareCallback));
+        });
+
         if (endpoint.method == "GET") {
             this.expressApp.get(endpoint.path, requestHandler.handle);
             return;
