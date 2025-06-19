@@ -1,5 +1,5 @@
 import { SchemaValidator } from "..";
-import { AnyEndpoint, AnyInputType, AnyOutputType } from "../Endpoint";
+import { AnyEndpoint, OutputSchemas, InputSchemas } from "../Endpoint";
 import OpenAPI, {
     ContentObject,
     HeaderObject,
@@ -59,7 +59,7 @@ export default class OpenAPIInterpreter {
         return operation;
     }
 
-    private addParameters(inputType: AnyInputType, operation: OperationObject): void {
+    private addParameters(inputType: InputSchemas, operation: OperationObject): void {
         if (inputType.query) {
             this.addQueryParameters(inputType.query, operation);
         }
@@ -106,7 +106,7 @@ export default class OpenAPIInterpreter {
         }
     }
 
-    private addRequestBody(inputType: AnyInputType, operation: OperationObject): void {
+    private addRequestBody(inputType: InputSchemas, operation: OperationObject): void {
         let hasFiles = inputType.files != undefined;
         let hasBody = inputType.body != undefined;
 
@@ -132,7 +132,7 @@ export default class OpenAPIInterpreter {
         }
     }
 
-    private addResponses(outputType: AnyOutputType, operation: OperationObject, errorType?: SchemaValidator.AnyTarinObject): void {
+    private addResponses(outputType: OutputSchemas, operation: OperationObject, errorType?: SchemaValidator.AnyTarinObject): void {
         let hasFiles = outputType.files != undefined;
         let hasBody = outputType.body != undefined;
 

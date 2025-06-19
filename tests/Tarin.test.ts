@@ -1,6 +1,6 @@
 import supertest from "supertest";
 import Tarin from "../src/Tarin";
-import { endpoint } from "../src/Endpoint";
+import { AnyEndpoint, endpoint } from "../src/Endpoint";
 import * as SchemaValidator from "../src/SchemaValidator";
 import Result from "../src/Result";
 
@@ -16,7 +16,9 @@ describe("Tarin Class", () => {
                 .output({
                     body: SchemaValidator.object({ message: SchemaValidator.string() })
                 })
-                .handleLogic(_ => Result.success({ body: { message: "Hello World" } }))
+                .handleLogic(_ => {
+                    return Result.success({ body: { message: "Hello World" } });
+                })
         );
 
         const response = await supertest(server).get("/");

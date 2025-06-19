@@ -1,21 +1,11 @@
 import FormData from "form-data";
-import { Result, SchemaValidator, Tarin } from ".";
-import { AnyCallback, AnyEndpoint, AnyInputType, Input } from "./Endpoint";
+import { Result, SchemaValidator } from ".";
+import { AnyCallback, AnyEndpoint, AnyInput, Input } from "./Endpoint";
 import express from "express";
 import { readFileSync } from "fs";
-import { TarinError, TarinObjectError } from "./SchemaValidator";
+import InputHandler, { InputHandlerError, InputHandlerErrorType } from "./InputHandler";
 
-enum InputError {
-    BodyError,
-    QueryError,
-    ParamsError,
-    HeadersError,
-    FilesError
-}
-
-interface ProcessError { error: TarinObjectError; type: InputError; }
-
-const errorsMessages: { [k in InputError]: string; } = {
+const errorsMessages: { [Key in InputHandlerErrorType]: string; } = {
     0: "Invalid body",
     1: "Invalid query",
     2: "Invalid params",
@@ -47,30 +37,26 @@ export default class RequestHandler {
             return;
         }
 
-        const inputResult = this.processInput({
-            query: req.query,
+        const inputHandlingResult = this.handleInput({
             body: req.body,
+            query: req.query,
             params: req.params,
             headers: req.headers,
             files: req.files,
         });
 
-        if (inputResult.isFailure()) {
+        if (inputHandlingResult.isFailure()) {
             res.status(500).json({
                 status: "error",
-                message: errorsMessages[inputResult.error!.type],
-                data: inputResult.error?.error,
+                message: errorsMessages[inputHandlingResult.error!.type],
+                data: inputHandlingResult.error!.error,
             });
             return;
         }
 
-        const { query, params, body, headers, files } = inputResult.value!;
+        const input = inputHandlingResult.value;
         const result = await this.endpoint.callback({
-            query: query,
-            body: body,
-            params: params,
-            headers: headers,
-            files: files,
+            ...input,
             middleware: req.middleware,
         });
 
@@ -86,7 +72,7 @@ export default class RequestHandler {
 
             const filesNames = Object.getOwnPropertyNames(output.files);
             for (let fileName of filesNames) {
-                const file: SchemaValidator.File = output.files[fileName];
+                const file = output.files![fileName];
                 formData.append(fileName, file.buffer, { filename: fileName, contentType: "application/octet-stream" });
             }
 
@@ -112,31 +98,27 @@ export default class RequestHandler {
     getMiddlewareHandler(callback: AnyCallback) {
         return async (req: express.Request, res: express.Response, next: express.NextFunction): Promise<void> => {
 
-            const inputResult = this.processInput({
-                query: req.query,
+            const inputHandlingResult = this.handleInput({
                 body: req.body,
+                query: req.query,
                 params: req.params,
                 headers: req.headers,
                 files: req.files,
             });
 
-            if (inputResult.isFailure()) {
+            if (inputHandlingResult.isFailure()) {
                 res.status(500).json({
                     status: "error",
-                    message: errorsMessages[inputResult.error!.type],
-                    data: inputResult.error?.error,
+                    message: errorsMessages[inputHandlingResult.error!.type],
+                    data: inputHandlingResult.error!.error,
                 });
                 return;
             }
 
-            const { query, params, body, headers, files } = inputResult.value!;
+            const input = inputHandlingResult.value;
             const result = await callback({
-                query: query,
-                body: body,
-                params: params,
-                headers: headers,
-                files: files,
-                middleware: req.middleware
+                ...input,
+                middleware: req.middleware,
             });
 
             if (result.isFailure()) {
@@ -150,122 +132,39 @@ export default class RequestHandler {
         }
     }
 
-    processInput({ body, query, params, headers, files }: any): Result<ProcessError, AnyInputType> {
-        const bodyResult = this.processBody(body);
-        if (bodyResult.isFailure()) {
-
-            return Result.failure({
-                type: InputError.BodyError,
-                error: bodyResult.error!,
-            });
+    processFiles(files: { [fieldname: string]: Express.Multer.File[]; } | Express.Multer.File[] | undefined) {
+        if (Array.isArray(files)) {
+            return files.reduce((acc: { [K in string]: SchemaValidator.File; }, file: SchemaValidator.File) => {
+                file.buffer = readFileSync(file.path!);
+                acc[file.fieldname] = file;
+                return acc;
+            }, {});
         }
 
-        const queryResult = this.processQuery(query);
-        if (queryResult.isFailure()) {
-            return Result.failure({
-                error: queryResult.error!,
-                type: InputError.QueryError,
-            });
-        }
-
-        const paramsResult = this.processParams(params);
-        if (paramsResult.isFailure()) {
-            return Result.failure({
-                error: paramsResult.error!,
-                type: InputError.ParamsError,
-            });
-        }
-
-        const headersResult = this.processHeaders(headers);
-        if (headersResult.isFailure()) {
-            return Result.failure({
-                error: headersResult.error!,
-                type: InputError.HeadersError,
-            });
-        }
-
-        const filesResult = this.processFiles(files);
-        if (filesResult.isFailure()) {
-            return Result.failure({
-                error: filesResult.error!,
-                type: InputError.FilesError,
-            });
-        }
-
-        return Result.success({
-            body: bodyResult.value,
-            query: queryResult.value,
-            params: paramsResult.value,
-            headers: headersResult.value,
-            files: filesResult.value,
-        });
+        return {};
     }
 
-    processBody(body: any): Result<SchemaValidator.TarinObjectError, any> {
-        let bodyData = {};
-        if (this.endpoint.inputType?.files == undefined) {
-            bodyData = body;
-        } else {
-            try {
-                bodyData = JSON.parse(body.data);
-            } catch (error) {
-                bodyData = {}
-            }
+    handleInput(input: Input<any, any, any, any, any>): Result<InputHandlerError, Input<any, any, any, any, any>> {
+        const inputHandler = new InputHandler(input.body, input.query, input.params, input.headers, this.processFiles(input.files));
+        const schemas = {
+            body: this.endpoint.inputType?.body,
+            query: this.endpoint.inputType?.query,
+            params: this.endpoint.inputType?.params,
+            headers: this.endpoint.inputType?.headers,
+            files: this.endpoint.inputType?.files,
+        };
+
+        const parsingResult = inputHandler.parse(schemas);
+        if (parsingResult.isFailure()) {
+            return parsingResult;
         }
 
-        const bodyErrors = this.endpoint.inputType?.body?.validate(bodyData);
-        if (bodyErrors) {
-            return Result.failure(bodyErrors);
+        const validationResult = inputHandler.validate(schemas);
+        if (validationResult.isFailure()) {
+            return validationResult;
         }
 
-        return Result.success(bodyData);
-    }
-
-    processQuery(query: any): Result<SchemaValidator.TarinObjectError, any> {
-        if (this.endpoint.inputType?.query) {
-            const errorsOrData = this.endpoint.inputType.query.parse(query);
-            return errorsOrData;
-        }
-
-        return Result.success({});
-    }
-
-    processParams(params: any): Result<SchemaValidator.TarinObjectError, any> {
-        if (this.endpoint.inputType?.params) {
-            const errorsOrData = this.endpoint.inputType.params.parse(params);
-            return errorsOrData;
-        }
-
-        return Result.success({});
-    }
-
-    processHeaders(headers: any): Result<SchemaValidator.TarinObjectError, any> {
-        if (this.endpoint.inputType?.headers) {
-            const errorsOrData = this.endpoint.inputType.headers.parse(headers);
-            return errorsOrData;
-        }
-
-        return Result.success({});
-    }
-
-    processFiles(files: { [fieldname: string]: Express.Multer.File[]; } | Express.Multer.File[] | undefined): Result<SchemaValidator.TarinObjectError, any> {
-        let filesData = {};
-        if (this.endpoint.inputType?.files) {
-            if (Array.isArray(files)) {
-                filesData = files.reduce((acc: { [K in string]: SchemaValidator.File; }, file: SchemaValidator.File) => {
-                    file.buffer = readFileSync(file.path!);
-                    acc[file.fieldname] = file;
-                    return acc;
-                }, {});
-
-                const filesErrors = this.endpoint.inputType.files.validate(filesData);
-                if (filesErrors) {
-                    return Result.failure(filesErrors);
-                }
-            }
-        }
-
-        return Result.success(filesData);
+        return Result.success(input);
     }
 
     handleHeaders(headers: any = {}) {

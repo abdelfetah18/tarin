@@ -7,14 +7,15 @@ type GetType<Type> = Type extends SchemaValidator.AnyTarinObject ? SchemaValidat
 type OnlyRequired<T> = { [K in keyof T as T[K] extends undefined ? never : K]: T[K]; };
 type Simplify<T> = T extends object ? { [K in keyof T]: T[K] } : T;
 type IsExactType<T, U> = [T] extends [U] ? ([U] extends [T] ? true : false) : false;
-type MakeItBetter<T> = IsExactType<T, { [K in string]: SchemaValidator.TarinSupportedType }> extends true ? undefined : T;
-
+type ExcludeTarinTypeIfExact<T> = ExcludeIfExact<T, { [K in string]: SchemaValidator.TarinSupportedType }>;
+type ExcludeTarinLiteralTypeIfExact<T> = ExcludeIfExact<T, { [K in string]: SchemaValidator.TarinSupportedLiteralType }>;
+type ExcludeIfExact<T, U> = IsExactType<T, U> extends true ? undefined : T;
 
 export default class Endpoint<InputType, OutputType, ErrorType> {
     method: HTTPMethod;
     path: string;
-    inputType?: Input<SchemaValidator.AnyTarinObject, SchemaValidator.LiteralTarinObject, SchemaValidator.LiteralTarinObject, SchemaValidator.AnyTarinObject, SchemaValidator.GenericTarinObject<SchemaValidator.TarinFile>>;
-    outputType?: Output<SchemaValidator.AnyTarinObject, SchemaValidator.AnyTarinObject, SchemaValidator.GenericTarinObject<SchemaValidator.TarinFile>>;
+    inputType?: InputSchemas;
+    outputType?: OutputSchemas;
     errorType?: SchemaValidator.AnyTarinObject;
     callback?: (input: InputType) => Result<ErrorType, OutputType> | Promise<Result<ErrorType, OutputType>>;
     middlewares: AnyCallback[];
@@ -26,36 +27,36 @@ export default class Endpoint<InputType, OutputType, ErrorType> {
     }
 
     input<
-        BodyType extends SchemaValidator.AnyTarinObject,
-        QueryType extends SchemaValidator.LiteralTarinObject,
-        ParamsType extends SchemaValidator.LiteralTarinObject,
-        HeadersType extends SchemaValidator.AnyTarinObject,
-        FilesType extends SchemaValidator.GenericTarinObject<SchemaValidator.TarinFile>
+        BodyType extends BodySchema,
+        QueryType extends QuerySchema,
+        ParamsType extends ParamsSchema,
+        HeadersType extends HeadersSchema,
+        FilesType extends FilesSchema
     >(inputType: Input<BodyType, QueryType, ParamsType, HeadersType, FilesType>) {
         this.inputType = inputType;
 
         type ComputedInputType = Simplify<OnlyRequired<{
-            body: MakeItBetter<Simplify<GetType<BodyType>>>;
-            params: MakeItBetter<Simplify<GetType<ParamsType>>>;
-            query: MakeItBetter<Simplify<GetType<QueryType>>>;
-            headers: MakeItBetter<Simplify<GetType<HeadersType>>>;
-            files: MakeItBetter<Simplify<GetType<FilesType>>>;
+            body: ExcludeTarinTypeIfExact<Simplify<GetType<BodyType>>>;
+            params: ExcludeTarinLiteralTypeIfExact<Simplify<GetType<ParamsType>>>;
+            query: ExcludeTarinLiteralTypeIfExact<Simplify<GetType<QueryType>>>;
+            headers: ExcludeTarinLiteralTypeIfExact<Simplify<GetType<HeadersType>>>;
+            files: ExcludeTarinTypeIfExact<Simplify<GetType<FilesType>>>;
         }>>;
 
         return this as unknown as Endpoint<ComputedInputType, OutputType, ErrorType>;
     }
 
     output<
-        BodyType extends SchemaValidator.AnyTarinObject,
-        HeadersType extends SchemaValidator.AnyTarinObject,
-        FilesType extends SchemaValidator.GenericTarinObject<SchemaValidator.TarinFile>
+        BodyType extends BodySchema,
+        HeadersType extends HeadersSchema,
+        FilesType extends FilesSchema
     >(outputType: Output<BodyType, HeadersType, FilesType>) {
         this.outputType = outputType;
 
         type ComputedOutputType = Simplify<OnlyRequired<{
-            body: MakeItBetter<Simplify<GetType<BodyType>>>;
-            headers: MakeItBetter<Simplify<GetType<HeadersType>>>;
-            files: MakeItBetter<Simplify<GetType<FilesType>>>;
+            body: ExcludeTarinTypeIfExact<Simplify<GetType<BodyType>>>;
+            headers: ExcludeTarinLiteralTypeIfExact<Simplify<GetType<HeadersType>>>;
+            files: ExcludeTarinTypeIfExact<Simplify<GetType<FilesType>>>;
         }>>;
 
         return this as unknown as Endpoint<InputType, ComputedOutputType, ErrorType>;
@@ -63,7 +64,7 @@ export default class Endpoint<InputType, OutputType, ErrorType> {
 
     error<Type extends SchemaValidator.AnyTarinObject>(errorType: Type) {
         this.errorType = errorType;
-        type ComputedErrorType = MakeItBetter<Simplify<GetType<Type>>>;
+        type ComputedErrorType = ExcludeTarinTypeIfExact<Simplify<GetType<Type>>>;
 
         return this as unknown as Endpoint<InputType, OutputType, ComputedErrorType>;
     }
@@ -75,24 +76,23 @@ export default class Endpoint<InputType, OutputType, ErrorType> {
 
     middleware<MiddlewareOutputType extends SchemaValidator.AnyTarinType>(
         outputType: MiddlewareOutputType,
-        callback: Callback<InputType, MakeItBetter<Simplify<GetType<MiddlewareOutputType>>>, ErrorType>,
+        callback: Callback<InputType, ExcludeTarinTypeIfExact<Simplify<GetType<MiddlewareOutputType>>>, ErrorType>,
     ) {
         this.middlewares.push(callback);
 
-        type ComputedInputType = InputType & { middleware: MakeItBetter<Simplify<GetType<MiddlewareOutputType>>>; }
+        type ComputedInputType = InputType & { middleware: ExcludeTarinTypeIfExact<Simplify<GetType<MiddlewareOutputType>>>; }
 
         return this as unknown as Endpoint<ComputedInputType, OutputType, ErrorType>;
     }
 
-
-    static createGET(path: string): AnyEndpoint { return new Endpoint(path, "GET"); }
-    static createPOST(path: string): AnyEndpoint { return new Endpoint(path, "POST"); }
-    static createDELETE(path: string): AnyEndpoint { return new Endpoint(path, "DELETE"); }
-    static createPATCH(path: string): AnyEndpoint { return new Endpoint(path, "PATCH"); }
-    static createHEAD(path: string): AnyEndpoint { return new Endpoint(path, "HEAD"); }
-    static createOPTIONS(path: string): AnyEndpoint { return new Endpoint(path, "OPTIONS"); }
-    static createPUT(path: string): AnyEndpoint { return new Endpoint(path, "PUT"); }
-    static createTRACE(path: string): AnyEndpoint { return new Endpoint(path, "TRACE"); }
+    static createGET(path: string): InitEndpoint { return new Endpoint(path, "GET"); }
+    static createPOST(path: string): InitEndpoint { return new Endpoint(path, "POST"); }
+    static createDELETE(path: string): InitEndpoint { return new Endpoint(path, "DELETE"); }
+    static createPATCH(path: string): InitEndpoint { return new Endpoint(path, "PATCH"); }
+    static createHEAD(path: string): InitEndpoint { return new Endpoint(path, "HEAD"); }
+    static createOPTIONS(path: string): InitEndpoint { return new Endpoint(path, "OPTIONS"); }
+    static createPUT(path: string): InitEndpoint { return new Endpoint(path, "PUT"); }
+    static createTRACE(path: string): InitEndpoint { return new Endpoint(path, "TRACE"); }
 }
 
 export type Callback<Input, Output, Error> = (input: Input) => Result<Error, Output> | Promise<Result<Error, Output>>;
@@ -106,35 +106,41 @@ export interface Input<BodyType, QueryType, ParamsType, HeadersType, FilesType> 
     files?: FilesType;
 };
 
+type AnyBodyType = any | undefined;
+type AnyQueryType = Record<string, string | number | boolean | undefined> | undefined;
+type AnyParamsType = Record<string, string | number | boolean | undefined> | undefined;
+type AnyHeadersType = Record<string, string | number | boolean | undefined> | undefined;
+type AnyFilesType = Record<string, SchemaValidator.File> | undefined;
+type AnyMiddlewareType = any | undefined;
+
+export type AnyInput = Input<
+    AnyBodyType,
+    AnyQueryType,
+    AnyParamsType,
+    AnyHeadersType,
+    AnyFilesType
+> & { middleware?: AnyMiddlewareType; };
+
 export interface Output<BodyType, HeadersType, FilesType> {
     body?: BodyType;
     headers?: HeadersType;
     files?: FilesType;
 };
 
-export type AnyInputType = Input<SchemaValidator.AnyTarinObject, SchemaValidator.LiteralTarinObject, SchemaValidator.LiteralTarinObject, SchemaValidator.AnyTarinObject, SchemaValidator.AnyTarinObject>;
-export type AnyOutputType = Output<SchemaValidator.AnyTarinObject, SchemaValidator.AnyTarinObject, SchemaValidator.GenericTarinObject<SchemaValidator.TarinFile>>;
-
-export type Schema = Input<
-    SchemaValidator.AnyTarinObject,
-    SchemaValidator.LiteralTarinObject,
-    SchemaValidator.LiteralTarinObject,
-    SchemaValidator.AnyTarinObject,
-    SchemaValidator.GenericTarinObject<SchemaValidator.TarinFile>
->
+export type AnyOutput = Output<
+    AnyBodyType,
+    AnyHeadersType,
+    AnyFilesType
+>;
 
 export type BodySchema = SchemaValidator.AnyTarinType;
 export type QuerySchema = SchemaValidator.LiteralTarinObject;
 export type ParamsSchema = SchemaValidator.LiteralTarinObject;
 export type HeadersSchema = SchemaValidator.LiteralTarinObject;
 export type FilesSchema = SchemaValidator.GenericTarinObject<SchemaValidator.TarinFile>;
-export interface InputSchemas {
-    body: BodySchema,
-    query: QuerySchema,
-    params: ParamsSchema,
-    headers: HeadersSchema,
-    files: FilesSchema
-};
+
+export type InputSchemas = Input<BodySchema, QuerySchema, ParamsSchema, HeadersSchema, FilesSchema>;
+export type OutputSchemas = Output<BodySchema, HeadersSchema, FilesSchema>;
 
 export const endpoint = {
     get: Endpoint.createGET,
@@ -149,3 +155,4 @@ export const endpoint = {
 
 // FIXME: Do not use any explicitly
 export type AnyEndpoint = Endpoint<any, any, any>;
+export type InitEndpoint = Endpoint<{}, {}, {}>;

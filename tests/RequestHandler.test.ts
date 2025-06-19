@@ -52,7 +52,7 @@ describe("RequestHandler Class", () => {
         expect(response.body).toEqual(expected);
     });
 
-    test("should handle input and return body errors", async () => {
+    test("should fail validation when input is invalid", async () => {
         const app = new Tarin();
         const server = app.createServer();
         app.addEndpoint(endpoint.post("/")
@@ -72,14 +72,30 @@ describe("RequestHandler Class", () => {
         );
         const response = await supertest(server).post("/").send({ username: 1 });
 
-        const expected = {
-            data: { username: { message: "Expected a string, but found number" } },
-            message: "Invalid body",
-            status: "error",
-        }
+        expect(response.body.status).toEqual("error");
+    });
 
+    test("should fail to parse when input is invalid", async () => {
+        const app = new Tarin();
+        const server = app.createServer();
+        app.addEndpoint(endpoint.post("/")
+            .input({
+                body: SchemaValidator.object({
+                    username: SchemaValidator.string()
+                })
+            })
+            .output({
+                body: SchemaValidator.object({ message: SchemaValidator.string() })
+            })
+            .handleLogic((input) => {
+                return Result.success({
+                    body: { message: `Hello ${input.body.username}` }
+                });
+            })
+        );
+        const response = await supertest(server).post("/").send({ id: "tarin" });
 
-        expect(response.body).toEqual(expected);
+        expect(response.body.status).toEqual("error");
     });
 
     test("should handle input and return query errors", async () => {
@@ -104,6 +120,36 @@ describe("RequestHandler Class", () => {
 
         const expected = {
             data: { username: { message: "data is missing" } },
+            message: "Invalid query",
+            status: "error",
+        }
+
+
+        expect(response.body).toEqual(expected);
+    });
+
+    test("should handle input and return query validation errors", async () => {
+        const app = new Tarin();
+        const server = app.createServer();
+        app.addEndpoint(endpoint.get("/")
+            .input({
+                query: SchemaValidator.object({
+                    username: SchemaValidator.string().max(4)
+                })
+            })
+            .output({
+                body: SchemaValidator.object({ message: SchemaValidator.string() })
+            })
+            .handleLogic((input) => {
+                return Result.success({
+                    body: { message: `Hello ${input.query.username}` },
+                });
+            })
+        );
+        const response = await supertest(server).get("/?username=tarin");
+
+        const expected = {
+            data: { username: { message: "Exceeded maximum allowed string length of 4" } },
             message: "Invalid query",
             status: "error",
         }
@@ -405,6 +451,71 @@ describe("RequestHandler Class", () => {
 
         const expected = { message: "Hello tarin, How are you?" };
 
+        expect(response.body).toEqual(expected);
+    });
+
+    test("should fail to handle input when its invalid on middleware", async () => {
+        const app = new Tarin();
+        const server = app.createServer();
+        app.addEndpoint(endpoint.post("/")
+            .input({
+                body: SchemaValidator.object({
+                    username: SchemaValidator.string()
+                })
+            })
+            .output({
+                body: SchemaValidator.object({ message: SchemaValidator.string() })
+            })
+            .middleware(
+                SchemaValidator.object({
+                    message: SchemaValidator.string()
+                }),
+                (input) => {
+                    return Result.success({ message: `Hi ${input.body.username}` });
+                })
+            .handleLogic((input) => {
+                return Result.success({
+                    body: { message: input.middleware.message }
+                });
+            })
+        );
+        const response = await supertest(server).post("/").send({ id: "tarin" });
+
+        expect(response.body.status).toEqual("error");
+    });
+
+    test("should return error on middleware", async () => {
+        const app = new Tarin();
+        const server = app.createServer();
+        app.addEndpoint(endpoint.post("/")
+            .input({
+                body: SchemaValidator.object({
+                    username: SchemaValidator.string()
+                })
+            })
+            .output({
+                body: SchemaValidator.object({ message: SchemaValidator.string() })
+            })
+            .error(SchemaValidator.object({ message: SchemaValidator.string() }))
+            .middleware(
+                SchemaValidator.object({
+                    message: SchemaValidator.string()
+                }),
+                (input) => {
+                    if (input.body.username != "Tarin") {
+                        return Result.failure({ message: "Wrong username" })
+                    }
+                    return Result.success({ message: `Hi ${input.body.username}` });
+                })
+            .handleLogic((input) => {
+                return Result.success({
+                    body: { message: input.middleware.message }
+                });
+            })
+        );
+        const response = await supertest(server).post("/").send({ username: "user" });
+
+        const expected = { message: "Wrong username" };
         expect(response.body).toEqual(expected);
     });
 });
