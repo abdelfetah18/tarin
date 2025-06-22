@@ -1,3 +1,5 @@
+import fs from "fs";
+import mime from "mime-types";
 import * as pathToRegex from "path-to-regexp";
 import { IncomingMessage, request } from "http";
 import contentType from 'content-type';
@@ -7,6 +9,8 @@ import { AnyEndpoint } from "./Endpoint";
 import InputHandler, { inputHandlerErrorsMessages } from "./InputHandler";
 import ResponseHandler, { Response } from "./ResponseHandler";
 import FormData from "form-data";
+import { readFileSync } from "fs";
+import path from "path";
 
 export type HTTPMethod = "GET" | "POST" | "PUT" | "DELETE" | "HEAD" | "PATCH" | "OPTIONS" | "TRACE"
 
@@ -19,7 +23,26 @@ export type RouteInput = {
 }
 
 export default class Route {
-    constructor(public endpoint: AnyEndpoint) { }
+    constructor(public endpoint: AnyEndpoint, public isStatic: boolean = false, public assetsPath?: string) { }
+
+    async handleStatic(request: IncomingMessage, response: Response): Promise<void> {
+        const assetsPath = this.assetsPath || "";
+        const url = new URL(`http://localhost${request.url}`);
+        const targetFilePath = url.pathname.replace(this.endpoint.path, "");
+        const filePath = path.join(__dirname, assetsPath, targetFilePath == "/" ? "/index.html" : targetFilePath);
+
+        fs.stat(filePath, (err, stats) => {
+            if (!err && stats.isFile()) {
+                const contentType = mime.lookup(filePath) || 'application/octet-stream';
+
+                response.writeHead(200, { 'Content-Type': contentType });
+                fs.createReadStream(filePath).pipe(response);
+            } else {
+                response.writeHead(404, { 'Content-Type': 'text/plain' });
+                response.end('404 Not Found');
+            }
+        });
+    }
 
     async handle(request: IncomingMessage, response: Response): Promise<void> {
         const responseHandler = new ResponseHandler(response);

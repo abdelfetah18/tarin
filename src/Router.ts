@@ -21,7 +21,13 @@ export default class Router {
         // 1. Match Endpoint
         let didMatch = false;
         for (let route of this.routes) {
-            if (route.match(method, url.pathname)) {
+            if (route.isStatic && url.pathname.startsWith(route.endpoint.path)) {
+                didMatch = true;
+                await route.handleStatic(request, response);
+                break;
+            }
+
+            if (!route.isStatic && route.match(method, url.pathname)) {
                 didMatch = true;
                 await route.handle(request, response);
                 break;

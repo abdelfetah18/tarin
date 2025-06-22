@@ -1,7 +1,6 @@
-import { AnyEndpoint, endpoint } from "./Endpoint";
+import Endpoint, { AnyEndpoint, endpoint } from "./Endpoint";
 import { createServer, Server } from "http";
 import OpenAPIInterpreter from "./OpenAPI/OpenAPIInterpreter";
-import swaggerUIDist from "swagger-ui-dist";
 import Router from "./Router";
 import Route from "./Route";
 import { Result, SchemaValidator } from ".";
@@ -56,6 +55,10 @@ export default class Tarin {
         return this.server;
     }
 
+    addStaticPath(path: string, assetsPath: string): void {
+        this.router.addRoute(new Route(new Endpoint(path, "GET"), true, assetsPath));
+    }
+
     addEndpoint(endpoint: AnyEndpoint): void {
         if (!this.server) {
             throw new Error("Should not call addEndpoint before createServer");
@@ -80,16 +83,16 @@ export default class Tarin {
         const openAPIJSON = openAPIInterpreter.generateDocs(endpoints);
 
         this.addEndpoint(
-            endpoint.get("/api-docs")
+            endpoint.get("/openapi.json")
                 .output({
                     body: SchemaValidator.object({})
                 })
                 .handleLogic(_ => {
                     return Result.success({ body: openAPIJSON });
                 })
-        )
+        );
 
-        console.log("swaggerUIDist.absolutePath():", swaggerUIDist.absolutePath());
+        this.addStaticPath("/api-docs", "/SwaggerUI");
     }
 
     listen(port: number): void {

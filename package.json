@@ -6,7 +6,7 @@
   "types": "lib/index.d.ts",
   "bugs": "https://github.com/abdelfetah18/tarin-issues-tracker",
   "scripts": {
-    "build": "tsc",
+    "build": "tsc && cp -r src/SwaggerUI lib/SwaggerUI",
     "test": "jest"
   },
   "keywords": [
@@ -23,10 +23,10 @@
   "devDependencies": {
     "@types/content-type": "^1.1.9",
     "@types/jest": "^29.5.14",
+    "@types/mime-types": "^3.0.1",
     "@types/node": "^22.10.2",
     "@types/parse-multipart": "^1.0.2",
     "@types/supertest": "^6.0.2",
-    "@types/swagger-ui-dist": "^3.30.5",
     "jest": "^29.7.0",
     "supertest": "^7.0.0",
     "ts-jest": "^29.2.5",
@@ -36,8 +36,8 @@
   "dependencies": {
     "content-type": "^1.0.5",
     "form-data": "^4.0.1",
+    "mime-types": "^3.0.1",
     "parse-multipart-data": "^1.5.0",
-    "path-to-regexp": "^8.2.0",
-    "swagger-ui-dist": "^5.25.2"
+    "path-to-regexp": "^8.2.0"
   }
 }
