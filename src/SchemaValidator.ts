@@ -434,7 +434,7 @@ export class TarinObject<T extends TarinTypeMap> extends TarinType<TypeOfObject<
 }
 
 
-export type File = { buffer: Buffer; size: number; mimetype: string; fieldname: string; path?: string; }
+export type File = { buffer: Buffer; size: number; mimetype: string; filename: string; path?: string; }
 export class TarinFile extends TarinType<File, TarinFileDef, TarinError> {
     type: TarinDataType = "file";
 

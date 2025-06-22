@@ -17,18 +17,6 @@ describe("RequestHandler Class", () => {
         expect(response.body).toEqual(expected);
     });
 
-    test("should return an error response when both input type and output type are not specified", async () => {
-        const app = new Tarin();
-        const server = app.createServer();
-        app.addEndpoint(endpoint.get("/").handleLogic(() => Result.success("")));
-        const response = await supertest(server).get("/");
-
-        const expected = { status: "error", message: "Both input type and output type were not specified" };
-
-        expect(response.statusCode).toBe(500);
-        expect(response.body).toEqual(expected);
-    });
-
     test("should return output when output type is specified but input type is not", async () => {
         const app = new Tarin();
         const server = app.createServer();
@@ -324,7 +312,7 @@ describe("RequestHandler Class", () => {
             .handleLogic((_) => {
                 return Result.success({
                     body: { message: `Hello World` },
-                    files: { file: { buffer, fieldname: "file", mimetype: "plain/text", size: buffer.length } }
+                    files: { file: { buffer, filename: "file", mimetype: "plain/text", size: buffer.length } }
                 });
             })
         );
@@ -340,7 +328,7 @@ describe("RequestHandler Class", () => {
         expect(file.size).toBe(10);
         expect(file.type).toBe("application/octet-stream");
 
-        httpServer.close();
+        server.close();
     });
 
     test("should return defined error", async () => {

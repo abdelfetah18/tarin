@@ -1,104 +1,106 @@
-import express from "express";
-import { AnyCallback, AnyEndpoint } from "./Endpoint";
-import RequestHandler from "./RequestHandler";
-import { Server } from "http";
+import { AnyEndpoint, endpoint } from "./Endpoint";
+import { createServer, Server } from "http";
 import OpenAPIInterpreter from "./OpenAPI/OpenAPIInterpreter";
-import swaggerUIExpress from "swagger-ui-express";
-import multer from "multer";
-
-const uploadManager = multer({ dest: './uploads/' })
+import swaggerUIDist from "swagger-ui-dist";
+import Router from "./Router";
+import Route from "./Route";
+import { Result, SchemaValidator } from ".";
 
 export default class Tarin {
-    endpoints: AnyEndpoint[] = [];
-    private expressApp?: express.Express;
+    router: Router;
+    server?: Server;
 
-    createServer(): express.Express {
-        express();
-        this.expressApp = express();
-        this.expressApp.use(express.json());
-        this.expressApp.use(uploadManager.any());
-        return this.expressApp;
+    constructor() {
+        this.router = new Router();
+    }
+
+    createServer(): Server {
+        this.server = createServer(async (req, res) => {
+            // console.log(req.method, req.url);
+            const chunks: Buffer[] = [];
+
+            req.on("data", (chunk: Buffer) => {
+                chunks.push(chunk);
+                // console.log({ event: "data", data: chunk });
+            });
+
+            req.on("end", () => {
+                // console.log({ event: "end" });
+                req.body = Buffer.concat(chunks);
+                this.router.handle(req, res);
+            });
+
+            req.on("error", (error) => {
+                // console.log({ event: "error", data: error });
+            });
+
+            req.on("close", () => {
+                // console.log({ event: "close" });
+            });
+
+            req.on("pause", () => {
+                // console.log({ event: "pause" });
+            });
+
+            req.on("readable", () => {
+                req.read();
+                // console.log({ event: "readable" });
+
+            });
+
+            req.on("resume", () => {
+                // console.log({ event: "resume" });
+            });
+        });
+
+        return this.server;
     }
 
     addEndpoint(endpoint: AnyEndpoint): void {
-        this.endpoints.push(endpoint);
-        this.handleEndpoint(endpoint);
-    }
-
-    private handleEndpoint(endpoint: AnyEndpoint): void {
-        if (!this.expressApp) {
-            throw new Error("Please call createServer method first.");
+        if (!this.server) {
+            throw new Error("Should not call addEndpoint before createServer");
         }
 
-        const requestHandler = new RequestHandler(endpoint);
-
-        endpoint.middlewares.forEach(middlewareCallback => {
-            this.expressApp!.use(endpoint.path, requestHandler.getMiddlewareHandler(middlewareCallback));
-        });
-
-        if (endpoint.method == "GET") {
-            this.expressApp.get(endpoint.path, requestHandler.handle);
-            return;
-        }
-
-        if (endpoint.method == "POST") {
-            this.expressApp.post(endpoint.path, requestHandler.handle);
-            return;
-        }
-
-        if (endpoint.method == "DELETE") {
-            this.expressApp.delete(endpoint.path, requestHandler.handle);
-            return;
-        }
-
-        if (endpoint.method == "PATCH") {
-            this.expressApp.patch(endpoint.path, requestHandler.handle);
-            return;
-        }
-
-        if (endpoint.method == "HEAD") {
-            this.expressApp.head(endpoint.path, requestHandler.handle);
-            return;
-        }
-
-        if (endpoint.method == "OPTIONS") {
-            this.expressApp.options(endpoint.path, requestHandler.handle);
-            return;
-        }
-
-        if (endpoint.method == "PUT") {
-            this.expressApp.put(endpoint.path, requestHandler.handle);
-            return;
-        }
-
-        if (endpoint.method == "TRACE") {
-            this.expressApp.trace(endpoint.path, requestHandler.handle);
-            return;
-        }
+        this.router.addRoute(new Route(endpoint));
     }
 
     addEndpoints(endpoints: AnyEndpoint[]): void {
+        if (!this.server) {
+            throw new Error("Should not call addEndpoints before createServer");
+        }
+
         for (let endpoint of endpoints) {
-            this.endpoints.push(endpoint);
-            this.handleEndpoint(endpoint);
+            this.router.addRoute(new Route(endpoint));
         }
     }
 
     private serveDocs(): void {
-        const endpoints = Array.from(this.endpoints.values());
+        const endpoints = Array.from(this.router.routes.map(route => route.endpoint).values());
         const openAPIInterpreter = new OpenAPIInterpreter();
         const openAPIJSON = openAPIInterpreter.generateDocs(endpoints);
-        this.expressApp!.use("/api-docs", swaggerUIExpress.serve, swaggerUIExpress.setup(openAPIJSON));
+
+        this.addEndpoint(
+            endpoint.get("/api-docs")
+                .output({
+                    body: SchemaValidator.object({})
+                })
+                .handleLogic(_ => {
+                    return Result.success({ body: openAPIJSON });
+                })
+        )
+
+        console.log("swaggerUIDist.absolutePath():", swaggerUIDist.absolutePath());
     }
 
-    listen(port: number): Server {
-        if (!this.expressApp) {
-            throw new Error("Please call createServer method first.");
-        } else {
-            this.serveDocs();
-            return this.expressApp.listen(port, () => {
-                console.log(`Server is up running on port ${port}`);
-            });
+    listen(port: number): void {
+        if (!this.server) {
+            throw new Error("Should not call listen before createServer");
         }
+
+        this.serveDocs();
+
+        this.server.listen(port, () => {
+            console.log(`Server is up running on port ${port}`);
+        });
     }
 }

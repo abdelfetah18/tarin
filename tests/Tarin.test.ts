@@ -124,7 +124,6 @@ describe("Tarin Class", () => {
     test("should call listen successfully", async () => {
         const app = new Tarin();
         const server = app.createServer();
-        const httpServer = app.listen(3002);
 
         app.addEndpoint(
             endpoint.get("/")
@@ -138,7 +137,7 @@ describe("Tarin Class", () => {
 
         expect(response.body.message).toBe("Hi");
 
-        httpServer.close();
+        server.close();
     });
 
     test("should serve get endpoint", async () => {

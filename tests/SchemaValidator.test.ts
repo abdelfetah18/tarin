@@ -1,7 +1,5 @@
-import multer from "multer";
 import { SchemaObject } from "../src/OpenAPI";
 import * as SchemaValidator from "../src/SchemaValidator";
-import { Readable } from "stream";
 
 describe("SchemaValidator Class", () => {
     test("should validates a string value successfully", async () => {
@@ -499,7 +497,7 @@ describe("SchemaValidator Class", () => {
             buffer,
             mimetype: "plain/text",
             size: buffer.length,
-            fieldname: "file"
+            filename: "file"
         };
 
         const errors = fileSchema.validate(file);

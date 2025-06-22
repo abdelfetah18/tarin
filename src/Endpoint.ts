@@ -106,12 +106,12 @@ export interface Input<BodyType, QueryType, ParamsType, HeadersType, FilesType> 
     files?: FilesType;
 };
 
-type AnyBodyType = any | undefined;
-type AnyQueryType = Record<string, string | number | boolean | undefined> | undefined;
-type AnyParamsType = Record<string, string | number | boolean | undefined> | undefined;
-type AnyHeadersType = Record<string, string | number | boolean | undefined> | undefined;
-type AnyFilesType = Record<string, SchemaValidator.File> | undefined;
-type AnyMiddlewareType = any | undefined;
+export type AnyBodyType = any | undefined;
+export type AnyQueryType = Record<string, string | string[] | number | boolean | undefined> | undefined;
+export type AnyParamsType = Record<string, string | number | boolean | undefined> | undefined;
+export type AnyHeadersType = Record<string, string | number | boolean | undefined> | undefined;
+export type AnyFilesType = Record<string, SchemaValidator.File> | undefined;
+export type AnyMiddlewareType = any | undefined;
 
 export type AnyInput = Input<
     AnyBodyType,

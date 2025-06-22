@@ -100,3 +100,11 @@ export default class InputHandler<Body, Query, Params, Headers, Files> {
         });
     }
 }
+
+export const inputHandlerErrorsMessages: { [Key in InputHandlerErrorType]: string; } = {
+    0: "Invalid body",
+    1: "Invalid query",
+    2: "Invalid params",
+    3: "Invalid headers",
+    4: "Invalid files",
+};
