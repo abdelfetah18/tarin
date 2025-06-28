@@ -14,9 +14,13 @@ jobs:
       version: ${{ steps.calc.outputs.version }}
 
     steps:
-      - name: Checkout source
+      - name: Checkout code
         uses: actions/checkout@v4
-
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20.x'
+          registry-url: 'https://registry.npmjs.org'
       - name: Calculate next version
         id: calc
         run: |
@@ -28,7 +32,8 @@ jobs:
             VERSION="${NEW_MAJOR}.0.0"
           else
             NEW_MINOR=$((MINOR + 1))
-            FINAL_VERSION="${MAJOR}.${NEW_MINOR}.0"
+            VERSION="${MAJOR}.${NEW_MINOR}.0"
           fi
 
+          echo "Next version is $VERSION"
           echo "version=$VERSION" >> "$GITHUB_OUTPUT"
