@@ -1,3 +1,4 @@
+import { expect, test, describe } from 'vitest';
 import supertest from "supertest";
 import { endpoint } from "../src/Endpoint";
 import Tarin from "../src/Tarin";

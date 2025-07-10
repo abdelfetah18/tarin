@@ -1,3 +1,4 @@
+import { expect, test, describe } from 'vitest';
 import { SchemaObject } from "../src/OpenAPI";
 import * as SchemaValidator from "../src/SchemaValidator";
 

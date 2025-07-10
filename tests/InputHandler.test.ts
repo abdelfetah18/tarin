@@ -1,3 +1,4 @@
+import { expect, test, describe } from 'vitest';
 import { SchemaValidator } from "../src";
 import { InputSchemas } from "../src/Endpoint";
 import InputHandler, { InputHandlerErrorType } from "../src/InputHandler";
