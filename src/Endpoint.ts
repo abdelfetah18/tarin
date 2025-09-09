@@ -1,15 +1,8 @@
 import Result from "./Result";
 import * as SchemaValidator from "./SchemaValidator";
+import * as TypeHelpers from "./types/helpers";
 
 export type HTTPMethod = "GET" | "POST" | "PUT" | "DELETE" | "HEAD" | "PATCH" | "OPTIONS" | "TRACE";
-
-type GetType<Type> = Type extends SchemaValidator.AnyTarinObject ? SchemaValidator.infer<Type> : undefined;
-type OnlyRequired<T> = { [K in keyof T as T[K] extends undefined ? never : K]: T[K]; };
-type Simplify<T> = T extends object ? { [K in keyof T]: T[K] } : T;
-type IsExactType<T, U> = [T] extends [U] ? ([U] extends [T] ? true : false) : false;
-type ExcludeTarinTypeIfExact<T> = ExcludeIfExact<T, { [K in string]: SchemaValidator.TarinSupportedType }>;
-type ExcludeTarinLiteralTypeIfExact<T> = ExcludeIfExact<T, { [K in string]: SchemaValidator.TarinSupportedLiteralType }>;
-type ExcludeIfExact<T, U> = IsExactType<T, U> extends true ? undefined : T;
 
 export default class Endpoint<InputType, OutputType, ErrorType> {
     method: HTTPMethod;
@@ -35,12 +28,12 @@ export default class Endpoint<InputType, OutputType, ErrorType> {
     >(inputType: Input<BodyType, QueryType, ParamsType, HeadersType, FilesType>) {
         this.inputType = inputType;
 
-        type ComputedInputType = Simplify<OnlyRequired<{
-            body: ExcludeTarinTypeIfExact<Simplify<GetType<BodyType>>>;
-            params: ExcludeTarinLiteralTypeIfExact<Simplify<GetType<ParamsType>>>;
-            query: ExcludeTarinLiteralTypeIfExact<Simplify<GetType<QueryType>>>;
-            headers: ExcludeTarinLiteralTypeIfExact<Simplify<GetType<HeadersType>>>;
-            files: ExcludeTarinTypeIfExact<Simplify<GetType<FilesType>>>;
+        type ComputedInputType = TypeHelpers.Simplify<TypeHelpers.OnlyRequired<{
+            body: TypeHelpers.ExcludeTarinTypeIfExact<TypeHelpers.Simplify<TypeHelpers.GetType<BodyType>>>;
+            params: TypeHelpers.ExcludeTarinLiteralTypeIfExact<TypeHelpers.Simplify<TypeHelpers.GetType<ParamsType>>>;
+            query: TypeHelpers.ExcludeTarinLiteralTypeIfExact<TypeHelpers.Simplify<TypeHelpers.GetType<QueryType>>>;
+            headers: TypeHelpers.ExcludeTarinLiteralTypeIfExact<TypeHelpers.Simplify<TypeHelpers.GetType<HeadersType>>>;
+            files: TypeHelpers.ExcludeTarinTypeIfExact<TypeHelpers.Simplify<TypeHelpers.GetType<FilesType>>>;
         }>>;
 
         return this as unknown as Endpoint<ComputedInputType, OutputType, ErrorType>;
@@ -53,10 +46,10 @@ export default class Endpoint<InputType, OutputType, ErrorType> {
     >(outputType: Output<BodyType, HeadersType, FilesType>) {
         this.outputType = outputType;
 
-        type ComputedOutputType = Simplify<OnlyRequired<{
-            body: ExcludeTarinTypeIfExact<Simplify<GetType<BodyType>>>;
-            headers: ExcludeTarinLiteralTypeIfExact<Simplify<GetType<HeadersType>>>;
-            files: ExcludeTarinTypeIfExact<Simplify<GetType<FilesType>>>;
+        type ComputedOutputType = TypeHelpers.Simplify<TypeHelpers.OnlyRequired<{
+            body: TypeHelpers.ExcludeTarinTypeIfExact<TypeHelpers.Simplify<TypeHelpers.GetType<BodyType>>>;
+            headers: TypeHelpers.ExcludeTarinLiteralTypeIfExact<TypeHelpers.Simplify<TypeHelpers.GetType<HeadersType>>>;
+            files: TypeHelpers.ExcludeTarinTypeIfExact<TypeHelpers.Simplify<TypeHelpers.GetType<FilesType>>>;
         }>>;
 
         return this as unknown as Endpoint<InputType, ComputedOutputType, ErrorType>;
@@ -64,7 +57,7 @@ export default class Endpoint<InputType, OutputType, ErrorType> {
 
     error<Type extends SchemaValidator.AnyTarinObject>(errorType: Type) {
         this.errorType = errorType;
-        type ComputedErrorType = ExcludeTarinTypeIfExact<Simplify<GetType<Type>>>;
+        type ComputedErrorType = TypeHelpers.ExcludeTarinTypeIfExact<TypeHelpers.Simplify<TypeHelpers.GetType<Type>>>;
 
         return this as unknown as Endpoint<InputType, OutputType, ComputedErrorType>;
     }
@@ -76,11 +69,11 @@ export default class Endpoint<InputType, OutputType, ErrorType> {
 
     middleware<MiddlewareOutputType extends SchemaValidator.AnyTarinType>(
         outputType: MiddlewareOutputType,
-        callback: Callback<InputType, ExcludeTarinTypeIfExact<Simplify<GetType<MiddlewareOutputType>>>, ErrorType>,
+        callback: Callback<InputType, TypeHelpers.ExcludeTarinTypeIfExact<TypeHelpers.Simplify<TypeHelpers.GetType<MiddlewareOutputType>>>, ErrorType>,
     ) {
         this.middlewares.push(callback);
 
-        type ComputedInputType = InputType & { middleware: ExcludeTarinTypeIfExact<Simplify<GetType<MiddlewareOutputType>>>; }
+        type ComputedInputType = TypeHelpers.Simplify<InputType & { middleware: TypeHelpers.ExcludeTarinTypeIfExact<TypeHelpers.Simplify<TypeHelpers.GetType<MiddlewareOutputType>>>; }>
 
         return this as unknown as Endpoint<ComputedInputType, OutputType, ErrorType>;
     }

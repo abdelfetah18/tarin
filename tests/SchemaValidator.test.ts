@@ -1,4 +1,4 @@
-import { expect, test, describe } from 'vitest';
+import { expect, test, describe, expectTypeOf } from 'vitest';
 import { SchemaObject } from "../src/OpenAPI";
 import * as SchemaValidator from "../src/SchemaValidator";
 
@@ -529,5 +529,206 @@ describe("SchemaValidator Class", () => {
         const expected = "file";
 
         expect(result).toEqual(expected);
+    });
+});
+
+describe("SchemaValidator.TypeOf", () => {
+    test("should resolve to 'string' for TarinString", () => {
+        expectTypeOf<SchemaValidator.TypeOf<SchemaValidator.TarinString>>().toEqualTypeOf<string>();
+    });
+
+    test("should resolve to 'number' for TarinNumber", () => {
+        expectTypeOf<SchemaValidator.TypeOf<SchemaValidator.TarinNumber>>().toEqualTypeOf<number>();
+    });
+
+    test("should resolve to 'boolean' for TarinBoolean", () => {
+        expectTypeOf<SchemaValidator.TypeOf<SchemaValidator.TarinBoolean>>().toEqualTypeOf<boolean>();
+    });
+
+    test("should resolve to 'File' for TarinFile", () => {
+        expectTypeOf<SchemaValidator.TypeOf<SchemaValidator.TarinFile>>().toEqualTypeOf<SchemaValidator.File>();
+    });
+
+    // Arrays of types
+    test("should resolve to 'string[]' for TarinArray<TarinString>", () => {
+        expectTypeOf<SchemaValidator.TypeOf<SchemaValidator.TarinArray<SchemaValidator.TarinString>>>().toEqualTypeOf<string[]>();
+    });
+
+    test("should resolve to 'number[]' for TarinArray<TarinNumber>", () => {
+        expectTypeOf<SchemaValidator.TypeOf<SchemaValidator.TarinArray<SchemaValidator.TarinNumber>>>().toEqualTypeOf<number[]>();
+    });
+
+    test("should resolve to 'boolean[]' for TarinArray<TarinBoolean>", () => {
+        expectTypeOf<SchemaValidator.TypeOf<SchemaValidator.TarinArray<SchemaValidator.TarinBoolean>>>().toEqualTypeOf<boolean[]>();
+    });
+
+    test("should resolve to 'File[]' for TarinArray<TarinFile>", () => {
+        expectTypeOf<SchemaValidator.TypeOf<SchemaValidator.TarinArray<SchemaValidator.TarinFile>>>().toEqualTypeOf<SchemaValidator.File[]>();
+    });
+
+    // Object schemas
+    test("should resolve to '{}' for TarinObject<{}>", () => {
+        expectTypeOf<SchemaValidator.TypeOf<SchemaValidator.TarinObject<{}>>>().toEqualTypeOf<{}>();
+    });
+
+    test("should resolve to '{ username: string }' for TarinObject with one string field", () => {
+        type Schema = SchemaValidator.TarinObject<{
+            username: SchemaValidator.TarinString;
+        }>;
+        expectTypeOf<SchemaValidator.TypeOf<Schema>>().toEqualTypeOf<{ username: string }>();
+    });
+
+    test("should resolve to a nested object with multiple fields", () => {
+        type Schema = SchemaValidator.TarinObject<{
+            id: SchemaValidator.TarinNumber;
+            isActive: SchemaValidator.TarinBoolean;
+            profile: SchemaValidator.TarinObject<{
+                name: SchemaValidator.TarinString;
+                tags: SchemaValidator.TarinArray<SchemaValidator.TarinString>;
+            }>;
+            profileImage: SchemaValidator.TarinFile;
+        }>;
+
+        type Expected = {
+            id: number;
+            isActive: boolean;
+            profile: {
+                name: string;
+                tags: string[];
+            };
+            profileImage: SchemaValidator.File;
+        };
+
+        expectTypeOf<SchemaValidator.TypeOf<Schema>>().toEqualTypeOf<Expected>();
+    });
+
+    test("should resolve to object with array field", () => {
+        type Schema = SchemaValidator.TarinObject<{
+            tags: SchemaValidator.TarinArray<SchemaValidator.TarinString>;
+        }>;
+
+        expectTypeOf<SchemaValidator.TypeOf<Schema>>().toEqualTypeOf<{
+            tags: string[];
+        }>();
+    });
+
+    test("should resolve to array of objects", () => {
+        type Schema = SchemaValidator.TarinArray<SchemaValidator.TarinObject<{
+            id: SchemaValidator.TarinNumber;
+            name: SchemaValidator.TarinString;
+        }>>;
+
+        expectTypeOf<SchemaValidator.TypeOf<Schema>>().toEqualTypeOf<Array<{ id: number; name: string }>>();
+    });
+
+    test("should resolve to deeply nested object structure", () => {
+        type Schema = SchemaValidator.TarinObject<{
+            user: SchemaValidator.TarinObject<{
+                profile: SchemaValidator.TarinObject<{
+                    name: SchemaValidator.TarinString;
+                    age: SchemaValidator.TarinNumber;
+                }>;
+            }>;
+        }>;
+
+        expectTypeOf<SchemaValidator.TypeOf<Schema>>().toEqualTypeOf<{
+            user: {
+                profile: {
+                    name: string;
+                    age: number;
+                };
+            };
+        }>();
+    });
+});
+
+
+describe("SchemaValidator.TypeOfObject", () => {
+    test("should resolve to '{}' for empty map", () => {
+        type Schema = {};
+        expectTypeOf<SchemaValidator.TypeOfObject<Schema>>().toEqualTypeOf<{}>();
+    });
+
+    test("should resolve to '{ name: string }' for single TarinString field", () => {
+        type Schema = {
+            name: SchemaValidator.TarinString;
+        };
+        expectTypeOf<SchemaValidator.TypeOfObject<Schema>>().toEqualTypeOf<{ name: string }>();
+    });
+
+    test("should resolve to '{ id: number; isActive: boolean }' for multiple primitive fields", () => {
+        type Schema = {
+            id: SchemaValidator.TarinNumber;
+            isActive: SchemaValidator.TarinBoolean;
+        };
+        expectTypeOf<SchemaValidator.TypeOfObject<Schema>>().toEqualTypeOf<{
+            id: number;
+            isActive: boolean;
+        }>();
+    });
+
+    test("should resolve to object with nested object field", () => {
+        type Schema = {
+            profile: SchemaValidator.TarinObject<{
+                email: SchemaValidator.TarinString;
+                age: SchemaValidator.TarinNumber;
+            }>;
+        };
+
+        expectTypeOf<SchemaValidator.TypeOfObject<Schema>>().toEqualTypeOf<{
+            profile: {
+                email: string;
+                age: number;
+            };
+        }>();
+    });
+
+    test("should resolve to object with array field", () => {
+        type Schema = {
+            tags: SchemaValidator.TarinArray<SchemaValidator.TarinString>;
+        };
+        expectTypeOf<SchemaValidator.TypeOfObject<Schema>>().toEqualTypeOf<{
+            tags: string[];
+        }>();
+    });
+
+    test("should resolve to object with nested array of objects", () => {
+        type Schema = {
+            items: SchemaValidator.TarinArray<SchemaValidator.TarinObject<{
+                title: SchemaValidator.TarinString;
+                count: SchemaValidator.TarinNumber;
+            }>>;
+        };
+
+        expectTypeOf<SchemaValidator.TypeOfObject<Schema>>().toEqualTypeOf<{
+            items: Array<{
+                title: string;
+                count: number;
+            }>;
+        }>();
+    });
+
+    test("should resolve to deeply nested structure", () => {
+        type Schema = {
+            user: SchemaValidator.TarinObject<{
+                id: SchemaValidator.TarinNumber;
+                meta: SchemaValidator.TarinObject<{
+                    isVerified: SchemaValidator.TarinBoolean;
+                    roles: SchemaValidator.TarinArray<SchemaValidator.TarinString>;
+                }>;
+                profileImage: SchemaValidator.TarinFile;
+            }>;
+        };
+
+        expectTypeOf<SchemaValidator.TypeOfObject<Schema>>().toEqualTypeOf<{
+            user: {
+                id: number;
+                meta: {
+                    isVerified: boolean;
+                    roles: string[];
+                };
+                profileImage: SchemaValidator.File;
+            };
+        }>();
     });
 });
