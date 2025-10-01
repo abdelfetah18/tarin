@@ -22,5 +22,5 @@ After installation, follow the [Getting Started](https://tarin-documentation.ver
 
 ## Documentation
 
-Visit [https://tarin-documentation.vercel.app](https://tarin-documentation.vercel.app/) to view the full documentation.
+Visit [https://tarin-documentation.netlify.app](https://tarin-documentation.netlify.app) to view the full documentation.
 
